@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>La energía eólica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root{
+    --navy:#0b2540; --sky:#2f7fb8; --sky2:#8cc3e6; --mist:#eaf4fa; --teal:#1f9e8f;
+    --sun:#f2a33a; --ink:#1d2a36; --muted:#5d6b78; --line:#d5e3ee;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:#fff; }
+  body{ font-family:'Source Serif 4', Georgia, serif; color:var(--ink); font-size:10.6pt; line-height:1.5;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .page{ width:210mm; height:297mm; position:relative; overflow:hidden; page-break-after:always; break-after:page;
+         padding:20mm 19mm 18mm; }
+  .page:last-child{ page-break-after:auto; break-after:auto; }
+
+  /* encabezado y pie */
+  .run{ position:absolute; top:9mm; left:19mm; right:19mm; display:flex; justify-content:space-between;
+        font:500 7.4pt Inter,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .run b{ color:var(--sky); font-weight:600; }
+  .foot{ position:absolute; bottom:9mm; left:19mm; right:19mm; display:flex; align-items:center; gap:4mm;
+         font:500 7.6pt Inter,sans-serif; color:var(--muted); }
+  .foot .rule{ flex:1; height:1px; background:var(--line); }
+  .foot .num{ font:700 9pt Fraunces,serif; color:var(--navy); }
+
+  h1,h2,h3{ font-family:Fraunces, Georgia, serif; color:var(--navy); line-height:1.12; }
+  .kicker{ font:600 7.6pt Inter,sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--teal); margin-bottom:2mm; }
+  h2{ font-size:23pt; font-weight:700; margin-bottom:4mm; letter-spacing:-.01em; }
+  h2 .n{ color:var(--sky2); font-weight:300; margin-right:2.5mm; }
+  h3{ font-size:12.6pt; font-weight:700; margin:4.5mm 0 1.6mm; }
+  h3 .n{ color:var(--sky); font-weight:500; margin-right:1.6mm; }
+  p{ margin-bottom:2.4mm; text-align:justify; hyphens:auto; }
+  p.lead{ text-align:left; font-size:12pt; line-height:1.5; color:#2b3a48; }
+  .drop::first-letter{ font-family:Fraunces,serif; font-weight:800; float:left; font-size:40pt; line-height:.86;
+                       padding:1.4mm 1.2mm 0 0; color:var(--sky); }
+  em{ font-style:italic; }
+  strong{ font-weight:600; color:var(--navy); }
+
+  figure{ margin:3mm 0; }
+  figure img{ width:100%; display:block; border-radius:2.2mm; object-fit:cover; }
+  figcaption{ font:400 7.6pt/1.35 Inter,sans-serif; color:var(--muted); margin-top:1.4mm; }
+  figcaption b{ color:var(--ink); font-weight:600; }
+
+  .callout{ background:var(--mist); border-left:1.2mm solid var(--sky); border-radius:0 2mm 2mm 0;
+            padding:3.2mm 4.5mm; margin:3.5mm 0; font-size:10.2pt; }
+  .callout .t{ font:700 8pt Inter,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--sky); margin-bottom:1mm; }
+  .formula{ font-family:Fraunces,serif; font-size:17pt; color:var(--navy); text-align:center; margin:1.5mm 0 1.5mm; }
+  .formula sub{ font-size:9pt; }
+
+  .cols{ display:grid; grid-template-columns:1fr 1fr; gap:6mm; }
+  .cols-3-2{ display:grid; grid-template-columns:1.35fr 1fr; gap:6mm; align-items:start; }
+
+  /* ===== CARÁTULA ===== */
+  .cover{ padding:0; background:var(--navy); color:#fff; }
+  .cover .photo{ position:absolute; inset:0 0 auto 0; height:178mm; background:url(img/Wind_farm_at_sunset.jpg) center 60%/cover; }
+  .cover .photo::after{ content:""; position:absolute; inset:0;
+     background:linear-gradient(180deg, rgba(11,37,64,.55) 0%, rgba(11,37,64,0) 30%, rgba(11,37,64,0) 60%, var(--navy) 100%); }
+  .cover .top{ position:absolute; top:16mm; left:19mm; right:19mm; display:flex; justify-content:space-between;
+               font:600 7.8pt Inter,sans-serif; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.88); }
+  .cover .title{ position:absolute; left:19mm; right:19mm; top:150mm; }
+  .cover .title .k{ font:600 8.5pt Inter,sans-serif; letter-spacing:.3em; text-transform:uppercase; color:var(--sun); margin-bottom:4mm; }
+  .cover h1{ color:#fff; font-size:56pt; font-weight:800; letter-spacing:-.025em; line-height:.95; }
+  .cover h1 i{ font-weight:300; font-style:italic; color:var(--sky2); }
+  .cover .sub{ font:300 italic 15pt Fraunces,serif; color:rgba(255,255,255,.85); margin-top:5mm; max-width:150mm; line-height:1.35; }
+  .cover .data{ position:absolute; left:19mm; right:19mm; bottom:18mm; display:grid; grid-template-columns:1fr 1fr; gap:4mm 10mm; }
+  .cover .data div{ border-top:1px solid rgba(255,255,255,.25); padding-top:2mm; font:400 9pt Inter,sans-serif; color:#fff; min-height:11mm; }
+  .cover .data span{ display:block; font:600 6.8pt Inter,sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--sky2); margin-bottom:1mm; }
+  .cover .blades{ position:absolute; right:14mm; top:86mm; width:46mm; opacity:.0; }
+
+  /* ===== ÍNDICE ===== */
+  .toc{ list-style:none; margin:2mm 0 2mm; }
+  .toc li{ display:flex; align-items:baseline; gap:2mm; padding:1.5mm 0; border-bottom:1px dotted var(--line); font-size:10.4pt; }
+  .toc li .n{ font:600 9pt Inter,sans-serif; color:var(--sky); width:8mm; }
+  .toc li .s{ flex:1; }
+  .toc li .p{ font:700 10pt Fraunces,serif; color:var(--navy); }
+  .toc li.sub{ padding-left:8mm; font-size:9.6pt; color:#3b4a58; }
+  .toc li.sub .n{ font-weight:500; color:var(--muted); }
+
+  /* ===== DIAGRAMA ===== */
+  .diagram{ background:linear-gradient(180deg,#eef6fb,#fff); border:1px solid var(--line); border-radius:3mm; padding:2mm; }
+  .diagram svg{ width:100%; display:block; }
+  .diagram text{ font-family:Inter,sans-serif; }
+
+  /* ===== LÍNEA DE TIEMPO ===== */
+  .tl{ position:relative; margin:2mm 0 1mm 3mm; padding-left:6mm; border-left:.5mm solid var(--sky2); }
+  .tl .ev{ position:relative; margin-bottom:2.3mm; }
+  .tl .ev::before{ content:""; position:absolute; left:-7.85mm; top:1.3mm; width:2.8mm; height:2.8mm; border-radius:50%;
+                   background:#fff; border:.6mm solid var(--sky); }
+  .tl .y{ font:700 8.4pt Inter,sans-serif; color:var(--sky); letter-spacing:.04em; }
+  .tl .d{ font-size:9.8pt; line-height:1.42; }
+
+  /* ===== DATOS ===== */
+  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:3.5mm; margin:3mm 0 3.5mm; }
+  .stat{ border:1px solid var(--line); border-radius:2.5mm; padding:3mm 3.5mm; background:#fff; }
+  .stat .v{ font:800 21pt Fraunces,serif; color:var(--navy); line-height:1; }
+  .stat .v small{ font-size:10pt; font-weight:500; color:var(--sky); }
+  .stat .l{ font:400 7.8pt/1.35 Inter,sans-serif; color:var(--muted); margin-top:1.4mm; }
+  .chart{ border:1px solid var(--line); border-radius:3mm; padding:3.5mm 4mm 2.5mm; }
+  .chart .ct{ font:600 8.4pt Inter,sans-serif; color:var(--navy); }
+  .chart .cs{ font:400 7.4pt Inter,sans-serif; color:var(--muted); }
+  .chart svg text{ font-family:Inter,sans-serif; }
+
+  /* ===== TABLA ===== */
+  table.vd{ width:100%; border-collapse:separate; border-spacing:0; font-size:9.5pt; line-height:1.38; margin:2mm 0 2mm; }
+  table.vd th{ font:700 8pt Inter,sans-serif; letter-spacing:.14em; text-transform:uppercase; text-align:left; padding:2.4mm 3.5mm; color:#fff; }
+  table.vd th.v{ background:var(--teal); border-radius:2mm 0 0 0; }
+  table.vd th.d{ background:#c4633b; border-radius:0 2mm 0 0; }
+  table.vd td{ vertical-align:top; padding:2.1mm 3.5mm; border-bottom:1px solid var(--line); width:50%; }
+  table.vd tr:nth-child(even) td{ background:#f6fafc; }
+  table.vd td b{ font-weight:600; color:var(--navy); }
+
+  /* ===== CONCLUSIÓN ===== */
+  .quote{ font:400 italic 15pt/1.38 Fraunces,serif; color:var(--navy); border-top:2px solid var(--sun); border-bottom:1px solid var(--line);
+          padding:4mm 0; margin:3mm 0 4mm; }
+
+  /* ===== ANEXOS ===== */
+  .gallery{ display:grid; grid-template-columns:1fr 1fr; gap:4mm 5mm; }
+  .gallery figure{ margin:0; }
+  .gallery img{ height:52mm; }
+  .gallery .wide{ grid-column:1 / span 2; }
+  .gallery .wide img{ height:62mm; }
+  .tag{ display:inline-block; font:700 7pt Inter,sans-serif; color:#fff; background:var(--sky); border-radius:1mm; padding:.3mm 1.4mm; margin-right:1.2mm; letter-spacing:.06em; }
+  .sources{ font:400 7.7pt/1.42 Inter,sans-serif; color:#3b4a58; }
+  .sources li{ margin:0 0 1.1mm 4mm; }
+  .sources i{ font-style:italic; }
+</style>
+</head>
+<body>
+
+<!-- ======================= 1. CARÁTULA ======================= -->
+<section class="page cover">
+  <div class="photo"></div>
+  <div class="top"><span>Trabajo práctico</span><span>Noviembre 2026</span></div>
+  <div class="title">
+    <div class="k">Energías renovables</div>
+    <h1>La energía<br><i>eólica</i></h1>
+    <p class="sub">Cómo el viento se convierte en electricidad, y por qué la Patagonia argentina es uno de los mejores lugares del mundo para aprovecharlo.</p>
+  </div>
+  <div class="data">
+    <div><span>Estudiante</span>&nbsp;</div>
+    <div><span>Curso</span>&nbsp;</div>
+    <div><span>Materia</span>&nbsp;</div>
+    <div><span>Docente</span>&nbsp;</div>
+  </div>
+</section>
+
+<!-- ======================= 2. ÍNDICE + INTRODUCCIÓN ======================= -->
+<section class="page">
+  <div class="run"><span><b>La energía eólica</b></span><span>Índice · Introducción</span></div>
+  <div class="kicker">Contenido</div>
+  <h2>Índice</h2>
+  <ul class="toc">
+    <li><span class="n">1</span><span class="s">Introducción</span><span class="p">2</span></li>
+    <li><span class="n">2</span><span class="s">Desarrollo</span><span class="p">3</span></li>
+    <li class="sub"><span class="n">2.1</span><span class="s">Del Sol al viento: de dónde sale la energía</span><span class="p">3</span></li>
+    <li class="sub"><span class="n">2.2</span><span class="s">Cómo funciona un aerogenerador</span><span class="p">3</span></li>
+    <li class="sub"><span class="n">2.3</span><span class="s">Breve historia: del molino al aerogenerador</span><span class="p">4</span></li>
+    <li class="sub"><span class="n">2.4</span><span class="s">Tipos de aerogeneradores y parques</span><span class="p">4</span></li>
+    <li class="sub"><span class="n">2.5</span><span class="s">La energía eólica en el mundo y en la Argentina</span><span class="p">5</span></li>
+    <li class="sub"><span class="n">2.6</span><span class="s">Ventajas y desventajas</span><span class="p">6</span></li>
+    <li><span class="n">3</span><span class="s">Conclusión</span><span class="p">6</span></li>
+    <li><span class="n">4</span><span class="s">Anexos y fuentes</span><span class="p">7</span></li>
+  </ul>
+
+  <div style="height:6mm"></div>
+  <div class="kicker">Capítulo 1</div>
+  <h2><span class="n">1</span>Introducción</h2>
+  <p class="lead drop">El viento es aire en movimiento, y todo lo que se mueve lleva energía. Desde hace más de mil años, las personas usan esa energía para moler granos, bombear agua o mover barcos. Hoy la usamos sobre todo para algo nuevo: <strong>producir electricidad</strong>.</p>
+  <p>La <strong>energía eólica</strong> (de <em>Eolo</em>, el dios griego de los vientos) es la que se obtiene aprovechando la fuerza del viento. Es una <strong>energía renovable</strong>, porque el viento no se agota, y es <strong>limpia</strong>, porque al generar electricidad no quema combustibles ni emite gases de efecto invernadero.</p>
+  <p>En un mundo que necesita cada vez más electricidad y, al mismo tiempo, reducir la contaminación que causa el cambio climático, la energía eólica se volvió una de las fuentes que más crece: a fines de 2025 ya había en el planeta unos <strong>1.300 gigavatios</strong> de potencia eólica instalada.</p>
+  <p>En este trabajo vamos a ver de dónde sale la energía del viento, cómo funciona un aerogenerador, cómo fue cambiando la tecnología a lo largo de la historia, qué lugar ocupa hoy la energía eólica en el mundo y en la Argentina, y cuáles son sus ventajas y desventajas.</p>
+
+  <div class="callout">
+    <div class="t">Objetivos del trabajo</div>
+    Explicar qué es la energía eólica y cómo se produce · Conocer las partes de un aerogenerador · Recorrer su historia · Analizar su presente en el mundo y en la Argentina · Evaluar sus ventajas y desventajas.
+  </div>
+
+  <div class="foot"><span>Introducción</span><span class="rule"></span><span class="num">2</span></div>
+</section>
+
+<!-- ======================= 3. DESARROLLO I ======================= -->
+<section class="page">
+  <div class="run"><span><b>La energía eólica</b></span><span>Desarrollo</span></div>
+  <div class="kicker">Capítulo 2</div>
+  <h2><span class="n">2</span>Desarrollo</h2>
+
+  <h3><span class="n">2.1</span>Del Sol al viento: de dónde sale la energía</h3>
+  <p>Aunque parezca raro, la energía eólica es en realidad <strong>energía solar</strong>. El Sol no calienta la Tierra en forma pareja: el ecuador recibe más calor que los polos, y la tierra se calienta y se enfría más rápido que el mar. El aire caliente es más liviano y sube; el aire frío, más pesado, ocupa su lugar. Ese movimiento de masas de aire entre zonas de distinta presión es el <strong>viento</strong>. La rotación de la Tierra, las montañas y los océanos le dan su dirección y su fuerza en cada lugar.</p>
+
+  <h3><span class="n">2.2</span>Cómo funciona un aerogenerador</h3>
+  <p>Un <strong>aerogenerador</strong> transforma la energía cinética del viento en energía eléctrica. Sus palas tienen forma de ala de avión: cuando el viento pasa, se genera una fuerza de <em>sustentación</em> que las hace girar. El rotor gira lento, por eso en la góndola una <strong>caja multiplicadora</strong> aumenta las vueltas, y un <strong>generador</strong> convierte ese giro en electricidad, igual que la dínamo de una bicicleta. Después, un transformador eleva la tensión para mandarla por la red.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tw" x1="0" x2="1"><stop offset="0" stop-color="#cfdbe5"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#b8c8d6"/></linearGradient>
+        <linearGradient id="bl" x1="0" x2="1"><stop offset="0" stop-color="#e9f0f6"/><stop offset="1" stop-color="#bccbd8"/></linearGradient>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f7fb8"/></marker>
+      </defs>
+      <!-- viento -->
+      <g stroke="#8cc3e6" stroke-width="2.2" fill="none" stroke-linecap="round" marker-end="url(#ar)">
+        <path d="M18,70 C48,62 70,78 104,70"/><path d="M10,110 C44,102 66,118 104,110"/><path d="M18,150 C48,142 70,158 104,150"/>
+      </g>
+      <text x="16" y="186" font-size="11" fill="#2f7fb8" font-weight="600">VIENTO</text>
+      <!-- suelo -->
+      <path d="M0,288 Q320,276 640,288 L640,300 L0,300 Z" fill="#d9ead3"/>
+      <!-- torre -->
+      <path d="M197,130 L211,130 L218,286 L190,286 Z" fill="url(#tw)" stroke="#9fb3c4" stroke-width="1"/>
+      <rect x="176" y="280" width="56" height="8" rx="1" fill="#a3b0bb"/>
+      <!-- palas -->
+      <g transform="translate(142,110)">
+        <path d="M0,-4 C6,-30 9,-70 3,-98 C-1,-100 -4,-96 -5,-90 C-6,-60 -5,-30 0,-4Z" fill="url(#bl)" stroke="#9fb3c4"/>
+        <path d="M0,-4 C6,-30 9,-70 3,-98 C-1,-100 -4,-96 -5,-90 C-6,-60 -5,-30 0,-4Z" fill="url(#bl)" stroke="#9fb3c4" transform="rotate(120)"/>
+        <path d="M0,-4 C6,-30 9,-70 3,-98 C-1,-100 -4,-96 -5,-90 C-6,-60 -5,-30 0,-4Z" fill="url(#bl)" stroke="#9fb3c4" transform="rotate(240)"/>
+      </g>
+      <!-- góndola en corte -->
+      <rect x="150" y="92" width="118" height="38" rx="9" fill="#ffffff" stroke="#0b2540" stroke-width="1.6"/>
+      <path d="M150,101 Q136,111 150,121 Z" fill="#e3ecf3" stroke="#0b2540" stroke-width="1.4"/>
+      <ellipse cx="142" cy="111" rx="10" ry="13" fill="#f2f6f9" stroke="#0b2540" stroke-width="1.6"/>
+      <rect x="152" y="108" width="20" height="6" fill="#7f93a5"/>
+      <rect x="172" y="99" width="30" height="24" rx="3" fill="#f2a33a"/>
+      <rect x="204" y="109" width="12" height="4" fill="#7f93a5"/>
+      <rect x="216" y="100" width="34" height="22" rx="4" fill="#1f9e8f"/>
+      <line x1="256" y1="92" x2="256" y2="80" stroke="#0b2540" stroke-width="1.4"/>
+      <path d="M256,80 l10,3 l-10,3z" fill="#0b2540"/>
+      <circle cx="248" cy="80" r="3" fill="none" stroke="#0b2540" stroke-width="1.2"/>
+      <rect x="196" y="130" width="16" height="5" fill="#5d6b78"/>
+      <!-- cable -->
+      <path d="M204,135 L204,272" stroke="#c4633b" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <rect x="236" y="256" width="30" height="26" rx="2" fill="#5d6b78"/>
+      <path d="M212,272 L236,272" stroke="#c4633b" stroke-width="1.6"/>
+      <path d="M266,262 L330,262 L360,240" stroke="#c4633b" stroke-width="1.6" fill="none"/>
+      <!-- etiquetas -->
+      <g font-size="11" fill="#0b2540">
+        <g stroke="#5d6b78" stroke-width=".8"><line x1="146" y1="14" x2="380" y2="22"/><line x1="134" y1="111" x2="120" y2="210"/><line x1="187" y1="99" x2="380" y2="58"/><line x1="233" y1="100" x2="380" y2="94"/><line x1="256" y1="80" x2="380" y2="130"/><line x1="204" y1="133" x2="380" y2="166"/><line x1="214" y1="220" x2="380" y2="202"/><line x1="266" y1="268" x2="380" y2="238"/></g>
+        <g font-weight="700"><text x="386" y="26">1 · Palas</text><text x="386" y="62">3 · Caja multiplicadora</text><text x="386" y="98">4 · Generador</text><text x="386" y="134">5 · Anemómetro y veleta</text><text x="386" y="170">6 · Sistema de orientación</text><text x="386" y="206">7 · Torre</text><text x="386" y="242">8 · Transformador</text></g>
+        <g fill="#5d6b78" font-size="9.4"><text x="386" y="39">captan la fuerza del viento</text><text x="386" y="75">aumenta las vueltas del eje</text><text x="386" y="111">convierte el giro en electricidad</text><text x="386" y="147">miden velocidad y dirección del viento</text><text x="386" y="183">gira la góndola para enfrentar el viento</text><text x="386" y="219">eleva el rotor donde sopla más fuerte</text><text x="386" y="255">eleva la tensión para la red eléctrica</text></g>
+        <text x="58" y="224" font-weight="700">2 · Buje (rotor)</text>
+      </g>
+    </svg>
+  </div>
+  <p style="font:400 7.6pt Inter,sans-serif;color:var(--muted);margin-top:1.2mm">Figura 1. Partes principales de un aerogenerador de eje horizontal (esquema propio, no está a escala).</p>
+
+  <div class="callout">
+    <div class="t">La fórmula del viento</div>
+    <div class="formula">P = ½ · ρ · A · v³</div>
+    La potencia (<em>P</em>) depende de la densidad del aire (<em>ρ</em>), del área que barren las palas (<em>A</em>) y de la velocidad del viento al <strong>cubo</strong> (<em>v³</em>). Por eso, si el viento sopla el doble de rápido, la potencia se multiplica por <strong>ocho</strong>. Según el <strong>límite de Betz</strong> (1919), ninguna turbina puede aprovechar más del 59,3 % de esa energía.
+  </div>
+  <p>Un aerogenerador moderno empieza a girar con vientos de unos <strong>3 a 4 m/s</strong>, llega a su potencia máxima alrededor de los 12 m/s y se frena solo, por seguridad, cuando el viento supera los <strong>25 m/s</strong> (unos 90 km/h).</p>
+
+  <div class="foot"><span>Desarrollo · 2.1 – 2.2</span><span class="rule"></span><span class="num">3</span></div>
+</section>
+
+<!-- ======================= 4. DESARROLLO II ======================= -->
+<section class="page">
+  <div class="run"><span><b>La energía eólica</b></span><span>Desarrollo</span></div>
+
+  <h3 style="margin-top:0"><span class="n">2.3</span>Breve historia: del molino al aerogenerador</h3>
+  <div class="cols-3-2">
+    <div class="tl">
+      <div class="ev"><div class="y">Siglos IX – X · Persia</div><div class="d">Aparecen los primeros molinos de viento de eje vertical para moler granos. En Nashtifan (Irán) todavía funcionan algunos de adobe y madera.</div></div>
+      <div class="ev"><div class="y">Siglos XII – XIX · Europa</div><div class="d">Los molinos de eje horizontal se extienden por Europa. Los Países Bajos los usan para moler y para secar tierras sacando el agua.</div></div>
+      <div class="ev"><div class="y">Siglo XIX · Argentina</div><div class="d">El <strong>molino de las pampas</strong>, de chapa y muchas aspas, bombea agua para el ganado y se vuelve un símbolo del campo argentino.</div></div>
+      <div class="ev"><div class="y">1888 · Estados Unidos</div><div class="d">Charles F. Brush construye en Cleveland una de las primeras turbinas que genera electricidad: un rotor de 17 m con 144 aspas.</div></div>
+      <div class="ev"><div class="y">1891 · Dinamarca</div><div class="d">Poul la Cour estudia cómo diseñar mejores palas y fabrica aerogeneradores para electrificar el campo.</div></div>
+      <div class="ev"><div class="y">Década de 1970 – 80</div><div class="d">Tras la crisis del petróleo, Dinamarca, Alemania y California impulsan los primeros parques eólicos comerciales.</div></div>
+      <div class="ev"><div class="y">Hoy</div><div class="d">Las turbinas más grandes superan los 20 MW, con palas de más de 100 m y alturas mayores que muchos rascacielos.</div></div>
+    </div>
+    <div>
+      <figure style="margin-top:0"><img src="img/Wind_turbine_1888_Charles_Brush.jpg" style="height:56mm"><figcaption><b>La turbina de Brush</b> (Cleveland, 1888). Dominio público.</figcaption></figure>
+      <figure><img src="img/Nashtifan_Windmills.jpg" style="height:46mm"><figcaption><b>Molinos de Nashtifan</b> (Irán), herederos de los antiguos molinos persas. Foto: Ali Vaseghnia, CC BY-SA 4.0.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3><span class="n">2.4</span>Tipos de aerogeneradores y parques</h3>
+  <div class="cols">
+    <div>
+      <p><strong>Según su eje.</strong> Los de <strong>eje horizontal</strong> son los más comunes: tienen tres palas, como una hélice, y deben girar para mirar al viento. Los de <strong>eje vertical</strong> (como los tipo Darrieus o Savonius) funcionan con viento de cualquier dirección, pero rinden menos y se usan sobre todo en instalaciones pequeñas.</p>
+      <p><strong>Según su tamaño.</strong> Hay <em>mini-eólicos</em> de pocos kilovatios para casas, escuelas rurales o puestos aislados, y grandes aerogeneradores de varios megavatios para alimentar la red eléctrica.</p>
+    </div>
+    <div>
+      <p><strong>Según dónde están.</strong> Los parques <strong>en tierra</strong> (<em>onshore</em>) son más baratos de construir y mantener. Los parques <strong>marinos</strong> (<em>offshore</em>) se instalan en el mar, donde el viento es más fuerte y constante; son más caros, pero permiten turbinas gigantes lejos de las casas.</p>
+      <figure style="margin-top:2mm"><img src="img/Block_Island_offshore_wind_farm_P6290638.jpg" style="height:36mm"><figcaption><b>Parque marino de Block Island</b> (EE.&nbsp;UU.). Foto: Ionna22, CC BY-SA 4.0.</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="foot"><span>Desarrollo · 2.3 – 2.4</span><span class="rule"></span><span class="num">4</span></div>
+</section>
+
+<!-- ======================= 5. DESARROLLO III ======================= -->
+<section class="page">
+  <div class="run"><span><b>La energía eólica</b></span><span>Desarrollo</span></div>
+
+  <h3 style="margin-top:0"><span class="n">2.5</span>La energía eólica en el mundo y en la Argentina</h3>
+  <p>En las últimas dos décadas la energía eólica creció muchísimo. Solo en 2025 se conectaron a la red <strong>165 GW</strong> nuevos, un récord, y la potencia total del planeta llegó a unos <strong>1.300 GW</strong>. China es por lejos el país líder: tiene casi la mitad de toda la potencia eólica del mundo.</p>
+
+  <div class="chart">
+    <div class="ct">Potencia eólica instalada en el mundo</div>
+    <div class="cs">Gigavatios (GW) acumulados a fin de cada año · Fuente: Global Wind Energy Council (GWEC)</div>
+    <svg viewBox="0 -12 600 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;margin-top:2mm">
+      <g stroke="#e3ecf3" stroke-width="1"><line x1="40" y1="20" x2="590" y2="20"/><line x1="40" y1="60" x2="590" y2="60"/><line x1="40" y1="100" x2="590" y2="100"/></g>
+      <line x1="40" y1="140" x2="590" y2="140" stroke="#9fb3c4" stroke-width="1"/>
+      <g font-size="9" fill="#5d6b78" text-anchor="end"><text x="34" y="143">0</text><text x="34" y="103">400</text><text x="34" y="63">800</text><text x="34" y="23">1.200</text></g>
+      <!-- escala: 1 GW = 0.1 px ... 1300 GW = 130px -->
+      <g>
+        <rect x="70"  y="120.3" width="62" height="19.7" rx="3" fill="#8cc3e6"/>
+        <rect x="175" y="96.7"  width="62" height="43.3" rx="3" fill="#8cc3e6"/>
+        <rect x="280" y="65.7"  width="62" height="74.3" rx="3" fill="#5aa1d1"/>
+        <rect x="385" y="26.4"  width="62" height="113.6" rx="3" fill="#2f7fb8"/>
+        <rect x="490" y="10.1"  width="62" height="129.9" rx="3" fill="#0b2540"/>
+      </g>
+      <g font-size="11" font-weight="700" fill="#0b2540" text-anchor="middle">
+        <text x="101" y="114">197</text><text x="206" y="90">433</text><text x="311" y="59">743</text><text x="416" y="20">1.136</text><text x="521" y="6" fill="#0b2540">1.299</text>
+      </g>
+      <g font-size="10" fill="#3b4a58" text-anchor="middle"><text x="101" y="156">2010</text><text x="206" y="156">2015</text><text x="311" y="156">2020</text><text x="416" y="156">2024</text><text x="521" y="156">2025</text></g>
+    </svg>
+  </div>
+
+  <div class="cols-3-2" style="margin-top:4mm">
+    <div>
+      <p><strong>La Argentina tiene uno de los mejores vientos del planeta.</strong> En la Patagonia el viento sopla fuerte y constante casi todo el año, y por eso algunos parques del sur logran rendimientos (factores de capacidad) que superan el 45 %, muy por encima del promedio mundial. También hay buen recurso en la costa de la provincia de Buenos Aires y en zonas de La Rioja.</p>
+      <p>En 2015 la <strong>Ley 27.191</strong> fijó la meta de cubrir el 20 % del consumo eléctrico con energías renovables hacia 2025. Con programas como <em>RenovAr</em> (2016) se construyeron decenas de parques, y la eólica pasó a ser la renovable más importante del país.</p>
+    </div>
+    <figure style="margin-top:0"><img src="img/Rawson_Wind_Farm_14.jpg" style="height:62mm"><figcaption><b>Parque Eólico Rawson</b> (Chubut). Foto: Gastón Cuello, CC BY-SA 3.0.</figcaption></figure>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v">≈ 4.500 <small>MW</small></div><div class="l">de potencia eólica instalada en la Argentina a fines de 2025</div></div>
+    <div class="stat"><div class="v">+ 1.200</div><div class="l">aerogeneradores funcionando en el país</div></div>
+    <div class="stat"><div class="v">≈ 60 <small>%</small></div><div class="l">de la potencia renovable instalada del país es eólica</div></div>
+  </div>
+
+  <p>El gran desafío es <strong>llevar esa energía hasta las ciudades</strong>. Los mejores vientos están lejos de donde vive la mayoría de la gente, así que la electricidad tiene que viajar cientos de kilómetros por las líneas de alta tensión del <em>Sistema Argentino de Interconexión</em> (SADI). Como esas líneas están casi al límite de su capacidad, ampliarlas es clave para que se puedan construir nuevos parques eólicos.</p>
+
+  <div class="foot"><span>Desarrollo · 2.5</span><span class="rule"></span><span class="num">5</span></div>
+</section>
+
+<!-- ======================= 6. VENTAJAS + CONCLUSIÓN ======================= -->
+<section class="page">
+  <div class="run"><span><b>La energía eólica</b></span><span>Desarrollo · Conclusión</span></div>
+
+  <h3 style="margin-top:0"><span class="n">2.6</span>Ventajas y desventajas</h3>
+  <table class="vd">
+    <tr><th class="v">Ventajas</th><th class="d">Desventajas</th></tr>
+    <tr><td><b>Renovable:</b> el viento no se agota.</td><td><b>Intermitente:</b> si no hay viento, no hay electricidad; hacen falta otras fuentes o baterías de respaldo.</td></tr>
+    <tr><td><b>Limpia:</b> no emite gases de efecto invernadero ni contamina el aire mientras funciona.</td><td><b>Impacto en la fauna:</b> puede afectar a aves y murciélagos si el parque está mal ubicado.</td></tr>
+    <tr><td><b>No usa agua</b> para generar electricidad, a diferencia de las centrales térmicas.</td><td><b>Impacto visual y ruido:</b> a algunas personas les molesta cómo se ven y el zumbido de las palas.</td></tr>
+    <tr><td><b>Barata:</b> hoy es una de las formas más económicas de producir electricidad.</td><td><b>Inversión inicial alta</b> y necesidad de líneas de transmisión largas desde zonas lejanas.</td></tr>
+    <tr><td><b>Comparte el terreno:</b> debajo de los molinos se puede seguir criando ganado o cultivando.</td><td><b>Reciclaje de palas:</b> están hechas de materiales difíciles de reciclar al final de su vida útil.</td></tr>
+  </table>
+
+  <div style="height:5mm"></div>
+  <div class="kicker">Capítulo 3</div>
+  <h2><span class="n">3</span>Conclusión</h2>
+  <div class="quote">El viento que antes movía molinos para sacar agua hoy enciende las luces de millones de hogares.</div>
+  <p>A lo largo de este trabajo vimos que la energía eólica es, en el fondo, energía del Sol que llega a nosotros en forma de viento, y que los aerogeneradores la transforman en electricidad sin quemar combustibles ni contaminar el aire. También vimos que es una tecnología con mucha historia, que empezó con los molinos persas y el molino de las pampas, y que hoy produce una parte cada vez más grande de la electricidad del mundo.</p>
+  <p>La energía eólica no es perfecta: depende de que sople el viento, tiene un impacto sobre el paisaje y la fauna, y sus palas son difíciles de reciclar. Por eso no alcanza sola: funciona mejor combinada con otras fuentes renovables, como la solar y la hidroeléctrica, y con sistemas para almacenar energía.</p>
+  <p>Para la Argentina es una gran oportunidad. Tenemos en la Patagonia uno de los vientos más fuertes y constantes del planeta, y aprovecharlo nos permite producir electricidad propia, más barata y más limpia. Cuidar el ambiente y tener energía para todos no son objetivos opuestos: la energía eólica demuestra que se pueden lograr al mismo tiempo.</p>
+
+  <div class="foot"><span>Desarrollo · 2.6 · Conclusión</span><span class="rule"></span><span class="num">6</span></div>
+</section>
+
+<!-- ======================= 7. ANEXOS ======================= -->
+<section class="page">
+  <div class="run"><span><b>La energía eólica</b></span><span>Anexos</span></div>
+  <div class="kicker">Capítulo 4</div>
+  <h2><span class="n">4</span>Anexos</h2>
+
+  <div class="gallery">
+    <figure class="wide"><img src="img/Rawson_Wind_Farm_07.jpg" style="object-position:center 40%"><figcaption><span class="tag">A1</span><b>Rotor de un aerogenerador visto desde abajo.</b> Parque Eólico Rawson, Chubut. Foto: Gastón Cuello, CC BY-SA 3.0.</figcaption></figure>
+    <figure><img src="img/Rawson_Wind_Farm_05.jpg"><figcaption><span class="tag">A2</span><b>Pala exhibida junto al parque</b> para mostrar su tamaño real. Rawson, Chubut. Foto: Gastón Cuello, CC BY-SA 3.0.</figcaption></figure>
+    <figure><img src="img/Nacelle_of_Wind_Turbine_01.jpg"><figcaption><span class="tag">A3</span><b>Góndola y buje</b> de un aerogenerador moderno. Foto: Σ64, CC BY 4.0.</figcaption></figure>
+    <figure><img src="img/En_el_molino_9230584290_.jpg" style="object-position:center 25%"><figcaption><span class="tag">A4</span><b>Molino de viento para bombear agua</b>, el antepasado rural del aerogenerador. Foto: Juanedc, CC BY 2.0.</figcaption></figure>
+    <figure><img src="img/Alstom_ECO100_turbine_at_Loma_Blanca.jpg"><figcaption><span class="tag">A5</span><b>Aerogenerador en el Parque Eólico Loma Blanca</b>, Chubut. Foto: Federico López, dominio público.</figcaption></figure>
+  </div>
+
+  <h3 style="font-size:10.5pt;margin-top:5mm">Fuentes consultadas</h3>
+  <ul class="sources">
+    <li>Global Wind Energy Council (GWEC). <i>Global Wind Report 2026</i>. Abril de 2026. gwec.net</li>
+    <li>CAMMESA. <i>Informes mensuales de generación renovable</i>, 2025. cammesa.com</li>
+    <li>Ley 27.191 (2015). Régimen de Fomento Nacional para el uso de fuentes renovables de energía. argentina.gob.ar</li>
+    <li>Energía Estratégica. «4 de cada 10 MWh consumidos en Argentina ya se cubren con renovables». 2026.</li>
+    <li>Imágenes: Wikimedia Commons (commons.wikimedia.org), con licencias libres indicadas en cada epígrafe. Foto de la carátula: «Wind farm at sunset», Always dreamin, CC0.</li>
+  </ul>
+
+  <div class="foot"><span>Anexos y fuentes</span><span class="rule"></span><span class="num">7</span></div>
+</section>
+
+</body>
+</html>
