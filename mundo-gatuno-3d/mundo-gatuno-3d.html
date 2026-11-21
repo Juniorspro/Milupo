@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mundo Gatuno 3D · El valle secreto</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   MUNDO GATUNO 3D · ESTILOS (todo lo que está encima del mundo 3D)
+   ===================================================================== */
+:root {
+  --texto: #5a3e5d; --crema: #fffdf8;
+  --rosa: #ff7fb6;  --rosa-borde: #d9558f;
+  --menta: #3fc98c; --menta-borde: #2a9a68;
+  --sombra: 0 4px 0 rgba(90, 62, 93, .18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: #cfeaff; }
+body {
+  font-family: 'Fredoka', system-ui, sans-serif; color: var(--texto);
+  user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+#mundo { display: block; position: fixed; inset: 0; width: 100%; height: 100%; }
+button { font-family: inherit; color: inherit; border: none; cursor: pointer; touch-action: manipulation; }
+.oculto { display: none !important; }
+
+/* ---- Botones y tarjetas ---- */
+.boton {
+  font-size: 1.25rem; font-weight: 600; color: #fff; background: var(--rosa);
+  padding: 13px 28px; border-radius: 999px; box-shadow: 0 5px 0 var(--rosa-borde);
+}
+.boton:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--rosa-borde); }
+.boton.menta { background: var(--menta); box-shadow: 0 5px 0 var(--menta-borde); }
+.boton.chico { font-size: .95rem; padding: 9px 16px; background: #fff; color: var(--texto); box-shadow: 0 4px 0 #e3c8de; }
+.tarjeta {
+  background: var(--crema); border-radius: 28px; padding: 20px 22px;
+  box-shadow: 0 10px 0 rgba(90, 62, 93, .14);
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  max-height: 92vh; overflow-y: auto;
+}
+.capa { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 14px; }
+.capa.oscura { background: rgba(90, 62, 93, .35); }
+.fila-botones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+
+/* ---- Pantalla de carga ---- */
+#cargando { background: linear-gradient(180deg, #cfeaff, #e9ffe0); z-index: 50; flex-direction: column; gap: 12px; font-size: 1.3rem; font-weight: 600; }
+#cargando .huella { font-size: 3rem; animation: saltito 1s infinite; }
+
+/* ---- Menú inicial ---- */
+#menu { align-items: flex-end; justify-content: center; }
+#menu .tarjeta { width: 100%; max-width: 430px; }
+@media (min-width: 800px) { #menu { align-items: center; justify-content: flex-start; padding-left: 6vw; } }
+.titulo { font-size: clamp(2.1rem, 8vw, 3rem); font-weight: 700; line-height: 1; color: var(--rosa); text-shadow: 0 3px 0 #fff, 0 6px 0 rgba(90,62,93,.12); }
+.titulo span { color: #ff9b42; }
+.subtitulo { font-weight: 500; font-size: 1.1rem; margin-top: -4px; }
+.etiqueta { font-weight: 600; font-size: .95rem; opacity: .85; }
+.pelajes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.pelaje { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; font-size: .8rem; font-weight: 600; }
+.pelaje .muestra { width: 46px; height: 46px; border-radius: 50%; border: 4px solid #fff; box-shadow: var(--sombra); }
+.pelaje.elegido .muestra { border-color: var(--rosa); transform: scale(1.1); }
+#nombre {
+  font-family: inherit; font-size: 1.15rem; text-align: center; color: var(--texto);
+  border: 3px solid #f1dcea; border-radius: 16px; padding: 8px 12px; width: 200px; background: #fff; outline: none;
+}
+#nombre:focus { border-color: var(--rosa); }
+.nota { font-size: .85rem; opacity: .8; line-height: 1.35; }
+
+/* ---- Barra de arriba (HUD) ---- */
+.hud { position: fixed; z-index: 10; }
+#marcador { top: 12px; left: 12px; right: 160px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.chip {
+  background: rgba(255, 255, 255, .93); border-radius: 999px; padding: 8px 13px;
+  font-weight: 600; font-size: .98rem; box-shadow: var(--sombra); white-space: nowrap;
+}
+button.chip:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(90,62,93,.18); }
+.chip.activo { background: #ffe27a; }
+#mapa { top: 12px; right: 12px; width: 130px; height: 130px; border-radius: 50%; box-shadow: var(--sombra); background: #9fdc84; }
+#pista {
+  top: 150px; right: 12px; width: 130px; background: rgba(255, 255, 255, .93); border-radius: 18px;
+  padding: 8px 6px; text-align: center; box-shadow: var(--sombra); font-size: .85rem; font-weight: 600;
+}
+#flecha { width: 46px; height: 46px; display: block; margin: 0 auto 2px; }
+
+/* ---- Avisos y globos de diálogo ---- */
+#aviso {
+  top: 16%; left: 50%; transform: translateX(-50%); width: max-content; max-width: 88vw;
+  background: var(--crema); border-radius: 22px; padding: 12px 22px; text-align: center;
+  box-shadow: 0 6px 0 rgba(90, 62, 93, .18); animation: aparecer .35s; pointer-events: none;
+}
+#aviso b { display: block; font-size: 1.05rem; color: var(--rosa); }
+#aviso strong { display: block; font-size: 1.35rem; margin: 2px 0; }
+#aviso span { display: block; font-size: .98rem; }
+.globo {
+  position: fixed; z-index: 9; transform: translate(-50%, -100%); pointer-events: none;
+  background: #fff; border-radius: 16px; padding: 8px 12px; max-width: 230px; text-align: center;
+  font-size: .95rem; box-shadow: var(--sombra);
+}
+.globo::after { content: ''; position: absolute; left: 50%; bottom: -9px; margin-left: -9px; border: 9px solid transparent; border-bottom: 0; border-top-color: #fff; }
+.globo b { color: var(--rosa); }
+
+/* ---- Controles táctiles ---- */
+#joystick {
+  left: 22px; bottom: 26px; width: 130px; height: 130px; border-radius: 50%;
+  background: rgba(255, 255, 255, .3); border: 3px solid rgba(255, 255, 255, .75); touch-action: none;
+}
+#palanca { position: absolute; left: 34px; top: 34px; width: 56px; height: 56px; border-radius: 50%; background: #fff; box-shadow: var(--sombra); pointer-events: none; }
+#botones-accion { right: 18px; bottom: 26px; display: grid; grid-template-columns: auto auto; gap: 12px; align-items: end; }
+.accion { width: 66px; height: 66px; border-radius: 50%; background: rgba(255, 255, 255, .92); font-size: 1.6rem; box-shadow: var(--sombra); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.accion small { font-size: .62rem; font-weight: 600; margin-top: 2px; }
+.accion.grande { width: 84px; height: 84px; font-size: 2rem; grid-row: span 2; background: #ffe27a; }
+.accion.activo { background: #b8f0cf; }
+#ayuda-teclado { bottom: 14px; left: 50%; transform: translateX(-50%); font-size: .85rem; opacity: .92; white-space: normal; text-align: center; width: max-content; max-width: 92vw; }
+
+/* ---- Cuaderno de exploración ---- */
+#cuaderno .tarjeta, #felicitaciones .tarjeta { width: 100%; max-width: 520px; }
+.lista { width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.lugar { display: flex; gap: 10px; align-items: center; background: #fff; border-radius: 16px; padding: 8px 12px; box-shadow: 0 3px 0 rgba(90, 62, 93, .1); }
+.lugar .icono { font-size: 1.8rem; width: 40px; text-align: center; flex: none; }
+.lugar.secreto { background: #f3eefa; }
+.lugar.secreto .icono { filter: grayscale(1); opacity: .6; }
+.lugar p { font-size: .88rem; }
+.lugar strong { font-size: 1rem; }
+
+@keyframes aparecer { from { opacity: 0; transform: translateX(-50%) scale(.6); } }
+@keyframes saltito { 50% { transform: translateY(-10px); } }
+</style>
+</head>
+<body>
+
+<!-- Pantalla de carga (se ve mientras llega la librería 3D) -->
+<div id="cargando" class="capa"><div class="huella">🐾</div><div id="texto-carga">Cargando el valle...</div></div>
+
+<!-- MENÚ: elegir gatito y nombre -->
+<div id="menu" class="capa oculto">
+  <div class="tarjeta">
+    <h1 class="titulo">Mundo Gatuno <span>3D</span></h1>
+    <p class="subtitulo">El valle de los lugares secretos</p>
+    <p class="etiqueta">Elige tu gatito</p>
+    <div class="pelajes" id="pelajes"></div>
+    <label class="etiqueta" for="nombre">¿Cómo se llama?</label>
+    <input id="nombre" maxlength="12" value="Mishi" autocomplete="off">
+    <button class="boton" id="boton-explorar">🐾 ¡A explorar!</button>
+    <p class="nota" id="nota-controles"></p>
+  </div>
+</div>
+
+<!-- HUD: lo que se ve mientras juegas -->
+<div id="marcador" class="hud oculto">
+  <span class="chip" id="contador">🗺️ 0/8</span>
+  <button class="chip" id="boton-cuaderno">📔 Cuaderno</button>
+  <button class="chip" id="boton-pista">🧭 Pista</button>
+  <button class="chip" id="boton-sonido">🔊</button>
+</div>
+<canvas id="mapa" class="hud oculto" width="130" height="130"></canvas>
+<div id="pista" class="hud oculto">
+  <svg id="flecha" viewBox="0 0 40 40"><path d="M20 3 L34 30 L20 23 L6 30 Z" fill="#ff7fb6" stroke="#d9558f" stroke-width="2" stroke-linejoin="round"/></svg>
+  <div id="texto-pista"></div>
+</div>
+<div id="aviso" class="hud oculto"></div>
+<div id="globo-amigo" class="globo oculto"></div>
+<div id="globo-gato" class="globo oculto"></div>
+
+<!-- Controles para celular -->
+<div id="joystick" class="hud oculto"><div id="palanca"></div></div>
+<div id="botones-accion" class="hud oculto">
+  <button class="accion" id="boton-miau">🐾<small>Miau</small></button>
+  <button class="accion grande" id="boton-saltar">⤒<small>Saltar</small></button>
+  <button class="accion" id="boton-correr">🏃<small>Correr</small></button>
+</div>
+<div id="ayuda-teclado" class="hud chip oculto">⌨️ WASD o flechas: caminar · Shift: correr · Espacio: saltar · M: maullar · Arrastra el mouse para mirar</div>
+
+<!-- Cuaderno de exploración -->
+<div id="cuaderno" class="capa oscura oculto">
+  <div class="tarjeta">
+    <h2>📔 Cuaderno de exploración</h2>
+    <p id="cuaderno-resumen"></p>
+    <div class="lista" id="lista-lugares"></div>
+    <div class="fila-botones">
+      <button class="boton menta" id="cerrar-cuaderno">Seguir explorando 🐾</button>
+      <button class="boton chico" id="boton-reiniciar">Borrar descubrimientos</button>
+    </div>
+  </div>
+</div>
+
+<!-- Felicitaciones al descubrir todo -->
+<div id="felicitaciones" class="capa oscura oculto">
+  <div class="tarjeta">
+    <div style="font-size:3.5rem">🏆</div>
+    <h2 id="texto-felicitaciones"></h2>
+    <p>Encontraste los 8 lugares secretos del valle. ¡Eres un gran explorador gatuno!</p>
+    <p>Puedes seguir paseando, saltar sobre los hongos o visitar a tus nuevos amigos.</p>
+    <button class="boton menta" id="cerrar-felicitaciones">Seguir explorando 🐾</button>
+  </div>
+</div>
+
+<!-- Si la librería 3D no carga (por ejemplo, sin internet), avisamos. -->
+<script>
+  setTimeout(() => {
+    if (!window.valleListo) document.getElementById('texto-carga').textContent =
+      'No se pudo cargar el mundo 3D. Revisa tu conexión a internet y vuelve a abrir el juego.';
+  }, 12000);
+</script>
+
+<!-- La librería three.js (para dibujar en 3D) se descarga de internet. -->
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+/* =====================================================================
+   MUNDO GATUNO 3D · CÓDIGO DEL JUEGO
+   1.  Configuración (números que puedes cambiar)
+   2.  Los 8 lugares secretos
+   3.  Pelajes de gatitos
+   4.  Progreso guardado
+   5.  Sonidos
+   6.  Escena: cielo, luces y terreno
+   7.  Obstáculos y plataformas
+   8.  Plantas: árboles, flores, pasto, arbustos y rocas
+   9.  Cómo se arma un gatito 3D
+   10. Cómo se construye cada lugar secreto
+   11. Mariposas, nubes y efectos
+   12. Controles (teclado, mouse y pantalla táctil)
+   13. Movimiento del gato: caminar, correr y saltar
+   14. Cámara
+   15. Descubrimientos, amigos, mapa y pista
+   16. Menú, cuaderno y botones
+   17. Bucle principal (se repite 60 veces por segundo)
+   ===================================================================== */
+import * as THREE from 'three';
+
+
+/* ---------- 1. CONFIGURACIÓN ---------- */
+const CONFIG = {
+  velocidadCaminar: 5.5,
+  velocidadCorrer: 11,
+  fuerzaSalto: 9,        // qué tan alto salta
+  gravedad: 25,
+  reboteHongo: 15,       // qué tan alto te lanzan los hongos
+  radioMundo: 184,       // hasta dónde se puede caminar
+  distanciaCamara: 7.5,
+};
+
+// Números al azar "con semilla": el valle sale igual cada vez que juegas.
+let semilla = 2024;
+function azar() {
+  semilla = (semilla + 0x6D2B79F5) | 0;
+  let t = Math.imul(semilla ^ (semilla >>> 15), 1 | semilla);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const entre = (min, max) => min + azar() * (max - min);
+const alAzar = lista => lista[Math.floor(azar() * lista.length)];
+const limitar = (v, min, max) => Math.max(min, Math.min(max, v));
+
+
+/* ---------- 2. LOS 8 LUGARES SECRETOS ----------
+   x y z son la posición en el valle (el gato empieza en 0, 0).
+   Norte = z negativo · Sur = z positivo · Este = x positivo · Oeste = x negativo. */
+const LUGARES = [
+  { id: 'girasoles', nombre: 'El Campo de Girasoles', emoji: '🌻', x: 5, z: 92, radio: 16, despejar: 15,
+    pista: 'Al sur hay flores más altas que un gato, y todas miran al sol.',
+    texto: 'Flores gigantes que siempre miran al sol.',
+    amigo: { nombre: 'Sol', pelaje: { cuerpo: '#ffe08a', rayas: '#f2c14e', panza: '#fffaf0', ojos: '#8bc34a' },
+             frase: 'Los girasoles y yo tenemos algo en común: ¡nos encanta tomar sol! ☀️' } },
+  { id: 'hongos', nombre: 'El Círculo de Hongos Mágicos', emoji: '🍄', x: 95, z: -15, radio: 16, despejar: 14,
+    pista: 'Al este crecen hongos tan grandes que se puede saltar sobre ellos.',
+    texto: '¡Salta sobre los hongos: rebotan como camas elásticas!',
+    amigo: { nombre: 'Fígaro', pelaje: { cuerpo: '#3d3842', rayas: '#2b2730', panza: '#ffffff', ojos: '#c6e03a' },
+             frase: '¡Boing, boing! ¿Viste cómo rebotan los hongos? 🍄' } },
+  { id: 'lago', nombre: 'El Lago Escondido', emoji: '🌊', x: -125, z: 15, radio: 34, despejar: 31,
+    pista: 'Al oeste, el cielo se refleja en el suelo. Para llegar a la isla tendrás que saltar.',
+    texto: 'Un lago tranquilo. ¿Podrás llegar a la isla saltando por los nenúfares?',
+    amigo: { nombre: 'Perla', pelaje: { cuerpo: '#fbf7f2', rayas: '#e3d8cc', panza: '#ffffff', ojos: '#5aa9e6' },
+             frase: '¡Llegaste saltando por los nenúfares! Aquí miro los peces todo el día. 🐟' } },
+  { id: 'arbol', nombre: 'El Árbol Gigante', emoji: '🌳', x: -15, z: -140, radio: 20, despejar: 13,
+    pista: 'Al norte vive el árbol más viejo y alto del valle. ¿Podrás subir a su casita?',
+    texto: 'El árbol más viejo del valle. Sube por los troncos hasta la casita.',
+    amigo: { nombre: 'Canela', pelaje: { cuerpo: '#c98b5a', rayas: '#a86b3f', panza: '#fff1e0', ojos: '#4caf50' },
+             frase: '¡Subiste hasta la casita del árbol! Desde aquí se ve todo el valle. 🌳' } },
+  { id: 'arcoiris', nombre: 'La Cima del Arcoíris', emoji: '🌈', x: 110, z: -118, radio: 15, despejar: 14,
+    pista: 'Al noreste, en la colina más alta, termina el arcoíris.',
+    texto: 'En la cima de la colina más alta... ¡y hay un tesoro!',
+    amigo: { nombre: 'Nube', pelaje: { cuerpo: '#ffffff', rayas: '#dfefff', panza: '#eaf6ff', ojos: '#5ab0f0' },
+             frase: '¡Llegaste a la cima! Quien ve el arcoíris tendrá un día miau-ravilloso. 🌈' } },
+  { id: 'cueva', nombre: 'La Cueva de Cristales', emoji: '💎', x: 118, z: 108, radio: 14, despejar: 13,
+    pista: 'Al sureste, entre rocas enormes, algo brilla con todos los colores.',
+    texto: 'Cristales brillantes escondidos entre las rocas.',
+    amigo: { nombre: 'Luna', pelaje: { cuerpo: '#c9c0dd', rayas: '#a59bbd', panza: '#f5f2fb', ojos: '#9c6ade' },
+             frase: 'Shhh... Los cristales brillan más cuando nadie hace ruido. ✨' } },
+  { id: 'casita', nombre: 'La Casita de los Gatitos', emoji: '🏡', x: -105, z: 122, radio: 14, despejar: 12,
+    pista: 'Al suroeste, escondida en el bosque, hay una casita con humo en la chimenea.',
+    texto: 'Una casita en el bosque donde juegan muchos gatitos.',
+    amigo: { nombre: 'Abuela Michi', pelaje: { cuerpo: '#fbf7f2', rayas: '#fbf7f2', panza: '#ffffff', ojos: '#8bc34a', manchas: ['#f6a04d', '#3d3842'], lentes: true },
+             frase: '¡Bienvenido a mi casita! Mis nietos juegan con ovillos todo el día. 🧶' } },
+  { id: 'ruinas', nombre: 'Las Ruinas Antiguas', emoji: '🏛️', x: -112, z: -100, radio: 15, despejar: 14,
+    pista: 'Al noroeste, unas columnas de piedra guardan la estatua de un gato muy antiguo.',
+    texto: 'Columnas de piedra y la estatua de la primera gata del valle.',
+    amigo: { nombre: 'Tomás', pelaje: { cuerpo: '#a3a9b6', rayas: '#6d7380', panza: '#f4f4f7', ojos: '#ffb300' },
+             frase: 'Esta estatua es de la primera gata del valle. ¡Dicen que era muy sabia! 🏛️' } },
+];
+const LAGO = LUGARES.find(l => l.id === 'lago');
+const CIMA = LUGARES.find(l => l.id === 'arcoiris');
+
+
+/* ---------- 3. PELAJES DE GATITOS ---------- */
+const PELAJES = [
+  { nombre: 'Naranja',  cuerpo: '#f6a04d', rayas: '#d9782c', panza: '#fff3e3', ojos: '#4caf50' },
+  { nombre: 'Gris',     cuerpo: '#a3a9b6', rayas: '#7c8290', panza: '#f4f4f7', ojos: '#ffb300' },
+  { nombre: 'Negro',    cuerpo: '#3d3842', rayas: '#2b2730', panza: '#4a4450', ojos: '#c6e03a' },
+  { nombre: 'Blanco',   cuerpo: '#fbf7f2', rayas: '#ece3d8', panza: '#ffffff', ojos: '#4fa8ec' },
+  { nombre: 'Tricolor', cuerpo: '#fbf7f2', rayas: '#fbf7f2', panza: '#ffffff', ojos: '#8bc34a', manchas: ['#f6a04d', '#3d3842'] },
+];
+
+
+/* ---------- 4. PROGRESO GUARDADO ---------- */
+const progreso = { descubiertos: [], pelaje: 0, nombre: 'Mishi', sonido: true };
+try { Object.assign(progreso, JSON.parse(localStorage.getItem('mundoGatuno3D')) || {}); } catch (error) {}
+function guardar() { try { localStorage.setItem('mundoGatuno3D', JSON.stringify(progreso)); } catch (error) {} }
+const descubierto = lugar => progreso.descubiertos.includes(lugar.id);
+
+
+/* ---------- 5. SONIDOS (los fabrica el navegador, no hay archivos) ---------- */
+let audio = null;
+function prepararAudio() {
+  try {
+    if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === 'suspended') audio.resume();
+  } catch (error) {}
+}
+// Una nota que sube o baja: de "desde" a "hasta" (en Hz) durante "duracion" segundos.
+function nota(desde, hasta, duracion, tipo = 'triangle', volumen = 0.18, inicio = 0) {
+  const osc = audio.createOscillator(), vol = audio.createGain(), t = audio.currentTime + inicio;
+  osc.type = tipo;
+  osc.frequency.setValueAtTime(desde, t);
+  osc.frequency.exponentialRampToValueAtTime(hasta, t + duracion);
+  vol.gain.setValueAtTime(0.0001, t);
+  vol.gain.exponentialRampToValueAtTime(volumen, t + 0.02);
+  vol.gain.exponentialRampToValueAtTime(0.0001, t + duracion);
+  osc.connect(vol).connect(audio.destination);
+  osc.start(t); osc.stop(t + duracion + 0.05);
+  return osc;
+}
+function sonar(nombre) {
+  if (!progreso.sonido || !audio) return;
+  try {
+    if (nombre === 'salto')   nota(300, 620, 0.16);
+    if (nombre === 'rebote')  nota(180, 900, 0.35, 'sine', 0.25);
+    if (nombre === 'boton')   nota(660, 700, 0.08);
+    if (nombre === 'descubrir') [523, 659, 784, 1047, 1319].forEach((f, i) => nota(f, f, 0.3, 'triangle', 0.16, i * 0.11));
+    if (nombre === 'pajaro')  { nota(2200, 3000, 0.08, 'sine', 0.04); nota(2400, 3200, 0.08, 'sine', 0.04, 0.12); }
+    if (nombre === 'miau') {
+      const osc = nota(520, 420, 0.55, 'triangle', 0.22), t = audio.currentTime;
+      osc.frequency.cancelScheduledValues(t);
+      osc.frequency.setValueAtTime(520, t);
+      osc.frequency.linearRampToValueAtTime(880, t + 0.15);
+      osc.frequency.linearRampToValueAtTime(420, t + 0.55);
+    }
+    if (nombre === 'agua') {   // ruido suave = "splash"
+      const largo = audio.sampleRate * 0.5, buffer = audio.createBuffer(1, largo, audio.sampleRate), datos = buffer.getChannelData(0);
+      for (let i = 0; i < largo; i++) datos[i] = (Math.random() * 2 - 1) * (1 - i / largo) ** 2;
+      const fuente = audio.createBufferSource(), filtro = audio.createBiquadFilter(), vol = audio.createGain();
+      fuente.buffer = buffer; filtro.type = 'lowpass'; filtro.frequency.value = 1200; vol.gain.value = 0.35;
+      fuente.connect(filtro).connect(vol).connect(audio.destination); fuente.start();
+    }
+  } catch (error) {}
+}
+
+
+/* ---------- 6. ESCENA: CIELO, LUCES Y TERRENO ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias: window.devicePixelRatio < 2 });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.domElement.id = 'mundo';
+document.body.prepend(renderer.domElement);
+
+const escena = new THREE.Scene();
+escena.fog = new THREE.Fog('#d8efff', 70, 230);   // niebla: lo lejano se vuelve celeste
+const camara = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 800);
+
+// Materiales: guardamos uno por color para no repetirlos.
+const materiales = {};
+function mat(color) {
+  return materiales[color] || (materiales[color] = new THREE.MeshLambertMaterial({ color }));
+}
+function matBrillante(color, brillo = 0.45) {
+  return new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: brillo, flatShading: true });
+}
+
+// Cielo: una esfera gigante pintada de celeste por dentro.
+const geoCielo = new THREE.SphereGeometry(500, 32, 24);
+const coloresCielo = [], arriba = new THREE.Color('#4fa8f2'), horizonte = new THREE.Color('#d8efff');
+const posCielo = geoCielo.attributes.position;
+for (let i = 0; i < posCielo.count; i++) {
+  const t = limitar(posCielo.getY(i) / 260, 0, 1);
+  const c = horizonte.clone().lerp(arriba, t);
+  coloresCielo.push(c.r, c.g, c.b);
+}
+geoCielo.setAttribute('color', new THREE.Float32BufferAttribute(coloresCielo, 3));
+const cielo = new THREE.Mesh(geoCielo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+escena.add(cielo);
+const solVisible = new THREE.Mesh(new THREE.SphereGeometry(16, 16, 12), new THREE.MeshBasicMaterial({ color: '#fff3b0', fog: false }));
+escena.add(solVisible);
+
+// Luces: una del cielo (suave, por todos lados) y una del sol.
+escena.add(new THREE.HemisphereLight('#eaf6ff', '#7fb069', 1.6));
+const luzSol = new THREE.DirectionalLight('#fff1d6', 2.0);
+luzSol.position.set(60, 100, 40);
+escena.add(luzSol);
+const direccionSol = luzSol.position.clone().normalize();
+
+// Altura del suelo en cada punto: suma de "olas" suaves + colina + lago + montañas del borde.
+function alturaBase(x, z) {
+  return Math.sin(x * 0.021) * 2.6 + Math.cos(z * 0.024) * 2.4
+       + Math.sin((x + z) * 0.043) * 1.3 + Math.sin(x * 0.09 - z * 0.07) * 0.5;
+}
+function bulto(x, z, cx, cz, radio, alto) {   // una lomita redondeada
+  const d2 = ((x - cx) ** 2 + (z - cz) ** 2) / (radio * radio);
+  return d2 >= 1 ? 0 : alto * (1 - d2) * (1 - d2);
+}
+const AGUA = alturaBase(LAGO.x, LAGO.z) - 0.8;   // nivel del agua del lago
+
+function altura(x, z) {
+  let h = alturaBase(x, z);
+  h += bulto(x, z, CIMA.x, CIMA.z, 48, 16);                       // la colina del arcoíris
+  const dLago = Math.hypot(x - LAGO.x, z - LAGO.z);
+  if (dLago < 34 && h < AGUA + 0.6) h += (AGUA + 0.6 - h) * Math.min(1, (34 - dLago) / 6);   // la orilla queda sobre el agua
+  if (dLago < 28) {                                                // el lago: hundimos el suelo
+    let t = dLago < 17 ? 1 : (28 - dLago) / 11;
+    t = t * t * (3 - 2 * t);
+    h += (AGUA - 2.5 - h) * t;
+    h += bulto(x, z, LAGO.x, LAGO.z, 7, 3.8);                      // la islita del centro
+  }
+  const r = Math.hypot(x, z);
+  if (r > 172) h += Math.min((r - 172) ** 2 * 0.05, 14);           // lomas altas en el borde
+  return h;
+}
+// El agua solo existe dentro del lago.
+const dentroDelLago = (x, z) => Math.hypot(x - LAGO.x, z - LAGO.z) < 28;
+const hayAgua = (x, z, suelo) => suelo < AGUA && dentroDelLago(x, z);
+const sobreTierra = (x, z) => !hayAgua(x, z, altura(x, z) - 0.35) && Math.hypot(x, z) < 174;
+
+// El terreno: una malla de cuadritos que subimos y bajamos según la altura.
+(function crearTerreno() {
+  const geo = new THREE.PlaneGeometry(440, 440, 150, 150);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, colores = [];
+  const verdeA = new THREE.Color('#9bd86f'), verdeB = new THREE.Color('#6fc05c'), pasto = new THREE.Color('#cfe27a');
+  const arena = new THREE.Color('#efdfa6'), fondo = new THREE.Color('#5f9f8e'), roca = new THREE.Color('#b4bfa3');
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i), h = altura(x, z);
+    pos.setY(i, h);
+    const ruido = (Math.sin(x * 0.15) + Math.cos(z * 0.13) + Math.sin((x - z) * 0.07)) / 3;
+    const c = verdeA.clone().lerp(verdeB, (ruido + 1) / 2);
+    c.lerp(pasto, limitar((h - 5) / 20, 0, 0.45));
+    if (Math.hypot(x - LAGO.x, z - LAGO.z) < 30) {
+      if (h < AGUA + 0.7) c.copy(arena);
+      if (h < AGUA - 0.4) c.copy(fondo);
+    }
+    const r = Math.hypot(x, z);
+    if (r > 176) c.lerp(roca, limitar((r - 176) / 16, 0, 1));
+    colores.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colores, 3));
+  geo.computeVertexNormals();
+  escena.add(new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true })));
+})();
+
+
+/* ---------- 7. OBSTÁCULOS Y PLATAFORMAS ----------
+   Cada obstáculo es un círculo: { x, z, r (radio), top (altura de arriba), base, rebote }.
+   Si el gato está más abajo que "top", choca. Si está arriba, ¡puede pararse encima! */
+const RADIO_GATO = 0.5;
+const rejilla = new Map();      // los guardamos por zonas para buscarlos rápido
+const ZONA = 8;
+function agregarObstaculo(o) {
+  o.base = o.base ?? -Infinity;
+  for (let zx = Math.floor((o.x - o.r - 1) / ZONA); zx <= Math.floor((o.x + o.r + 1) / ZONA); zx++) {
+    for (let zz = Math.floor((o.z - o.r - 1) / ZONA); zz <= Math.floor((o.z + o.r + 1) / ZONA); zz++) {
+      const clave = zx + ',' + zz;
+      if (!rejilla.has(clave)) rejilla.set(clave, []);
+      rejilla.get(clave).push(o);
+    }
+  }
+}
+const obstaculosCerca = (x, z) => rejilla.get(Math.floor(x / ZONA) + ',' + Math.floor(z / ZONA)) || [];
+
+// ¿Dónde está el piso debajo del gato? (el suelo o algo sobre lo que esté parado)
+function sueloEn(x, z, y) {
+  let suelo = altura(x, z), cosa = null;
+  for (const o of obstaculosCerca(x, z)) {
+    if (o.top === Infinity || o.top <= suelo) continue;
+    if ((x - o.x) ** 2 + (z - o.z) ** 2 < (o.r + 0.15) ** 2 && y >= o.top - 0.3) { suelo = o.top; cosa = o; }
+  }
+  return { suelo, cosa };
+}
+
+
+/* ---------- 8. PLANTAS: ÁRBOLES, FLORES, PASTO, ARBUSTOS Y ROCAS ----------
+   Usamos "instancias": un solo dibujo repetido muchas veces (así anda rápido en el celular). */
+function instancias(geometria, lista, plano = true) {
+  const malla = new THREE.InstancedMesh(geometria, new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: plano }), lista.length);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
+  lista.forEach((it, i) => {
+    q.setFromEuler(e.set(it.rx || 0, it.ry || 0, it.rz || 0));
+    const esc = it.s ?? 1;
+    if (typeof esc === 'number') s.set(esc, esc, esc); else s.set(esc[0], esc[1], esc[2]);
+    malla.setMatrixAt(i, m.compose(p.set(it.x, it.y, it.z), q, s));
+    malla.setColorAt(i, new THREE.Color(it.color));
+  });
+  malla.frustumCulled = false;
+  escena.add(malla);
+  return malla;
+}
+
+// ¿Se puede poner una planta grande aquí? (lejos del inicio, del lago y de los lugares secretos)
+function lugarLibre(x, z, margen = 0) {
+  const r = Math.hypot(x, z);
+  if (r < 12 + margen || r > 172) return false;
+  for (const l of LUGARES) if (Math.hypot(x - l.x, z - l.z) < l.despejar + margen) return false;
+  return Math.hypot(x - LAGO.x, z - LAGO.z) > 30 + margen;
+}
+
+(function crearPlantas() {
+  // --- Árboles ---
+  const arboles = [];
+  function intentarArbol(x, z) {
+    if (!lugarLibre(x, z, 2) || arboles.some(a => (a.x - x) ** 2 + (a.z - z) ** 2 < 30)) return;
+    arboles.push({ x, z, s: entre(0.8, 1.5), pino: azar() < 0.35 });
+  }
+  for (let i = 0; i < 4000 && arboles.length < 280; i++) {
+    const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 170;
+    intentarArbol(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  const casita = LUGARES.find(l => l.id === 'casita');   // un bosque alrededor de la casita
+  for (let i = 0; i < 400; i++) {
+    const a = azar() * Math.PI * 2, r = entre(14, 34);
+    intentarArbol(casita.x + Math.cos(a) * r, casita.z + Math.sin(a) * r);
+  }
+  const troncos = [], copas = [], pinos = [];
+  const verdes = ['#5dbb63', '#4caf50', '#7ccf6b', '#3f9d55', '#68c27a'];
+  arboles.forEach(a => {
+    const y = altura(a.x, a.z), s = a.s;
+    troncos.push({ x: a.x, y: y + 1.2 * s, z: a.z, s, color: alAzar(['#8d5a3b', '#9c6644', '#7f5237']) });
+    agregarObstaculo({ x: a.x, z: a.z, r: 0.45 * s, top: Infinity });
+    if (a.pino) {
+      const color = alAzar(['#3f9d55', '#4a9b6f', '#2f8a5a']);
+      [[2.6, 1], [3.8, 0.8], [4.9, 0.6]].forEach(([h, t]) => pinos.push({ x: a.x, y: y + h * s, z: a.z, s: t * s, color }));
+    } else {
+      const r = azar();
+      const color = r < 0.13 ? alAzar(['#ffb7d5', '#ff9ec7']) : r < 0.18 ? '#ffb85c' : alAzar(verdes);   // algunos rosados y naranjas
+      copas.push({ x: a.x, y: y + 3.3 * s, z: a.z, s: 1.0 * s, ry: azar() * 3, color });
+      copas.push({ x: a.x + 0.5 * s, y: y + 4.4 * s, z: a.z - 0.3 * s, s: 0.72 * s, ry: azar() * 3, color });
+    }
+  });
+  const geoTronco = new THREE.CylinderGeometry(0.25, 0.4, 2.4, 6);
+  instancias(geoTronco, troncos);
+  instancias(new THREE.IcosahedronGeometry(1.7, 0), copas);
+  instancias(new THREE.ConeGeometry(1.8, 2.6, 7), pinos);
+
+  // --- Flores (en grupitos de colores) ---
+  const cabezas = [], tallos = [];
+  const coloresFlor = ['#ff8fc7', '#ffd43b', '#ffffff', '#b197fc', '#ff6b6b', '#74c0fc', '#ffa94d'];
+  const centros = [{ x: 0, z: 0, color: '#ff8fc7' }];               // un grupito junto al inicio
+  for (let i = 0; i < 75; i++) {
+    const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 165;
+    centros.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, color: alAzar(coloresFlor) });
+  }
+  centros.forEach(c => {
+    const cantidad = Math.floor(entre(22, 40));
+    for (let i = 0; i < cantidad; i++) {
+      const a = azar() * Math.PI * 2, r = entre(c.x === 0 && c.z === 0 ? 3 : 0, 6) * Math.sqrt(azar());
+      const x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r;
+      if (!sobreTierra(x, z)) continue;
+      const y = altura(x, z), alto = entre(0.4, 0.75);
+      tallos.push({ x, y: y + alto / 2, z, s: [1, alto, 1], color: '#4f9d3a' });
+      cabezas.push({ x, y: y + alto, z, s: entre(0.8, 1.2), ry: azar() * 3, color: azar() < 0.8 ? c.color : alAzar(coloresFlor) });
+    }
+  });
+  instancias(new THREE.CylinderGeometry(0.03, 0.03, 1, 4), tallos);
+  instancias(new THREE.IcosahedronGeometry(0.22, 0), cabezas);
+  window.centrosDeFlores = centros;   // las mariposas vuelan cerca de las flores
+
+  // --- Pasto ---
+  const pasto = [];
+  for (let i = 0; i < 5500; i++) {
+    const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 172, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (!sobreTierra(x, z)) continue;
+    pasto.push({ x, y: altura(x, z) + 0.3, z, s: entre(0.7, 1.4), rx: entre(-0.3, 0.3), rz: entre(-0.3, 0.3),
+                 color: alAzar(['#6fbf4a', '#82cc5a', '#5aae45', '#9ad46a']) });
+  }
+  instancias(new THREE.ConeGeometry(0.12, 0.75, 3), pasto);
+
+  // --- Arbustos ---
+  const arbustos = [];
+  for (let i = 0; i < 400 && arbustos.length < 170; i++) {
+    const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 168, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (!lugarLibre(x, z, -4) || !sobreTierra(x, z)) continue;
+    const s = entre(0.7, 1.3);
+    arbustos.push({ x, y: altura(x, z) + 0.4 * s, z, s: [1.3 * s, 0.9 * s, 1.3 * s], ry: azar() * 3, color: alAzar(['#4caf50', '#5dbb63', '#43a047']) });
+  }
+  instancias(new THREE.IcosahedronGeometry(1, 0), arbustos);
+
+  // --- Rocas (¡puedes saltar encima!) ---
+  const rocas = [];
+  for (let i = 0; i < 400 && rocas.length < 90; i++) {
+    const a = azar() * Math.PI * 2, r = Math.sqrt(azar()) * 168, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (!lugarLibre(x, z) || !sobreTierra(x, z)) continue;
+    const s = entre(0.5, 1.4), y = altura(x, z);
+    rocas.push({ x, y: y + 0.25 * s, z, s: [s, 0.75 * s, s], ry: azar() * 3, rx: entre(-0.2, 0.2), color: alAzar(['#b8b8c4', '#a7a7b5', '#c9c3b8']) });
+    agregarObstaculo({ x, z, r: 0.9 * s, top: y + 0.9 * s });
+  }
+  instancias(new THREE.DodecahedronGeometry(1, 0), rocas);
+})();
+
+
+/* ---------- 9. CÓMO SE ARMA UN GATITO 3D ----------
+   Un gatito está hecho de esferas (cuerpo, cabeza, patitas), conos (orejas) y una cola
+   de varias bolitas. Devuelve las partes para poder animarlas. */
+const geoEsfera = new THREE.SphereGeometry(1, 16, 12);
+const geoOreja = new THREE.ConeGeometry(1, 1, 4);
+const geoPata = new THREE.CylinderGeometry(0.075, 0.07, 0.42, 8);
+const geoBigote = new THREE.BoxGeometry(0.3, 0.012, 0.012);
+const geoSombra = new THREE.CircleGeometry(0.6, 20).rotateX(-Math.PI / 2);
+const matSombra = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.22, depthWrite: false });
+
+function crearGato(p) {
+  const grupo = new THREE.Group();          // el gato completo (mira hacia +z)
+  const cuerpo = new THREE.Group();         // todo lo que sube y baja al caminar
+  grupo.add(cuerpo);
+  function bola(color, x, y, z, sx, sy, sz, padre = cuerpo) {
+    const m = new THREE.Mesh(geoEsfera, mat(color));
+    m.position.set(x, y, z); m.scale.set(sx, sy, sz); padre.add(m);
+    return m;
+  }
+
+  // Cuerpo, panza, rayitas y manchas
+  bola(p.cuerpo, 0, 0.55, 0, 0.36, 0.34, 0.52);
+  bola(p.panza, 0, 0.47, 0.17, 0.27, 0.25, 0.33);
+  for (let i = 0; i < 3; i++) bola(p.rayas, 0, 0.86, -0.25 + i * 0.2, 0.25, 0.06, 0.05);
+  if (p.manchas) {
+    bola(p.manchas[0], 0.14, 0.7, -0.12, 0.25, 0.22, 0.28);
+    bola(p.manchas[1], -0.13, 0.72, 0.18, 0.22, 0.2, 0.22);
+  }
+
+  // Cabeza
+  const cabeza = new THREE.Group();
+  cabeza.position.set(0, 0.98, 0.42);
+  cuerpo.add(cabeza);
+  bola(p.cuerpo, 0, 0, 0, 0.42, 0.37, 0.38, cabeza);
+  bola(p.panza, 0, -0.12, 0.24, 0.2, 0.13, 0.14, cabeza);                 // hocico
+  if (p.manchas) bola(p.manchas[0], -0.16, 0.15, 0.1, 0.22, 0.2, 0.25, cabeza);
+  for (const lado of [-1, 1]) {
+    const oreja = new THREE.Mesh(geoOreja, mat(p.manchas && lado === -1 ? p.manchas[0] : p.cuerpo));
+    oreja.position.set(0.22 * lado, 0.33, -0.02); oreja.scale.set(0.15, 0.3, 0.12);
+    oreja.rotation.set(0, Math.PI / 4, -0.35 * lado); cabeza.add(oreja);
+    const dentro = new THREE.Mesh(geoOreja, mat('#ffb3c7'));
+    dentro.position.set(0.215 * lado, 0.3, 0.04); dentro.scale.set(0.09, 0.2, 0.05);
+    dentro.rotation.set(0, Math.PI / 4, -0.35 * lado); cabeza.add(dentro);
+    bola(p.ojos, 0.15 * lado, 0.04, 0.31, 0.085, 0.1, 0.05, cabeza);       // ojo
+    bola('#1d1720', 0.15 * lado, 0.035, 0.345, 0.05, 0.07, 0.03, cabeza);  // pupila
+    bola('#ffffff', 0.17 * lado, 0.08, 0.372, 0.022, 0.022, 0.015, cabeza); // brillito
+    bola('#ffa3bf', 0.27 * lado, -0.08, 0.25, 0.07, 0.04, 0.03, cabeza);    // cachete
+    for (const subir of [0, 1]) {                                             // bigotes
+      const bigote = new THREE.Mesh(geoBigote, mat('#5a4a4a'));
+      bigote.position.set(0.3 * lado, -0.1 + subir * 0.05, 0.26);
+      bigote.rotation.z = (subir ? 0.12 : -0.08) * lado;
+      cabeza.add(bigote);
+    }
+    if (p.lentes) {
+      const lente = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.018, 6, 16), mat('#8a6a3a'));
+      lente.position.set(0.15 * lado, 0.04, 0.37); cabeza.add(lente);
+    }
+  }
+  bola('#ff7aa2', 0, -0.06, 0.37, 0.045, 0.035, 0.03, cabeza);              // nariz
+
+  // Patitas (cada una gira desde arriba, como una bisagra)
+  const patas = [];
+  [[-0.17, 0.3], [0.17, 0.3], [-0.17, -0.3], [0.17, -0.3]].forEach(([x, z]) => {
+    const bisagra = new THREE.Group();
+    bisagra.position.set(x, 0.45, z);
+    grupo.add(bisagra);
+    const pata = new THREE.Mesh(geoPata, mat(p.cuerpo));
+    pata.position.y = -0.21; bisagra.add(pata);
+    bola(p.panza, 0, -0.42, 0.03, 0.09, 0.06, 0.11, bisagra);
+    patas.push(bisagra);
+  });
+
+  // Cola: 6 bolitas, cada una colgada de la anterior
+  const cola = [];
+  let padre = new THREE.Group();
+  padre.position.set(0, 0.68, -0.46);
+  cuerpo.add(padre);
+  for (let i = 0; i < 6; i++) {
+    const segmento = new THREE.Group();
+    if (i > 0) segmento.position.set(0, 0.11, -0.02);
+    padre.add(segmento);
+    bola(i === 5 && p.manchas ? p.manchas[1] : p.cuerpo, 0, 0.05, 0, 0.075, 0.09, 0.075, segmento);
+    cola.push(segmento);
+    padre = segmento;
+  }
+
+  const sombra = new THREE.Mesh(geoSombra, matSombra);
+  escena.add(grupo, sombra);
+  return { grupo, cuerpo, cabeza, patas, cola, sombra, fase: 0, mirar: 0 };
+}
+
+// Anima un gatito. rapidez: 0 = quieto, 1 = caminando, 2 = corriendo.
+function animarGato(g, rapidez, enAire, dt, t) {
+  if (rapidez > 0.05) g.fase += dt * (5 + rapidez * 5);
+  const paso = Math.sin(g.fase), amplitud = Math.min(rapidez, 1.6) * 0.5;
+  if (enAire) {
+    g.patas[0].rotation.x = g.patas[1].rotation.x = -0.7;   // patitas de adelante estiradas
+    g.patas[2].rotation.x = g.patas[3].rotation.x = 0.7;    // patitas de atrás hacia atrás
+  } else {
+    g.patas[0].rotation.x = g.patas[3].rotation.x = paso * amplitud;
+    g.patas[1].rotation.x = g.patas[2].rotation.x = -paso * amplitud;
+  }
+  g.cuerpo.position.y = enAire ? 0 : Math.abs(Math.cos(g.fase)) * 0.05 * Math.min(rapidez, 1.5) + Math.sin(t * 2.2) * 0.008;
+  g.cuerpo.rotation.x = rapidez > 1.3 ? 0.08 : 0;           // se inclina un poquito al correr
+  g.cola.forEach((s, i) => {
+    s.rotation.z = Math.sin(t * (2 + rapidez * 2) + i * 0.7) * (0.12 + rapidez * 0.05);
+    s.rotation.x = enAire ? -0.45 : -0.25;
+  });
+  // Si está quieto, mira a los costados
+  const objetivo = rapidez < 0.05 ? Math.sin(t * 0.6) * 0.4 : 0;
+  g.mirar += (objetivo - g.mirar) * Math.min(1, dt * 3);
+  g.cabeza.rotation.y = g.mirar;
+}
+
+// Ubica el gatito y su sombra.
+function ubicarGato(g, x, y, z, angulo) {
+  g.grupo.position.set(x, y, z);
+  g.grupo.rotation.y = angulo;
+  const piso = sueloEn(x, z, y + 0.01).suelo;
+  g.sombra.position.set(x, piso + 0.04, z);
+  g.sombra.scale.setScalar(limitar(1 - (y - piso) * 0.12, 0.4, 1));
+}
+
+
+/* ---------- 10. CÓMO SE CONSTRUYE CADA LUGAR SECRETO ----------
+   Cada función arma su lugar y devuelve dónde se para el gatito amigo. */
+const animaciones = [];   // cosas que se mueven solas (humo, peces, brillitos...)
+function pieza(geometria, material, x, y, z, escala = 1, padre = escena) {
+  const m = new THREE.Mesh(geometria, typeof material === 'string' ? mat(material) : material);
+  m.position.set(x, y, z);
+  if (typeof escala === 'number') m.scale.setScalar(escala); else m.scale.set(escala[0], escala[1], escala[2]);
+  padre.add(m);
+  return m;
+}
+const haciaElCentro = l => Math.atan2(-l.x, -l.z);   // ángulo para mirar hacia donde empieza el gato
+
+// Brillitos que flotan (para lugares mágicos)
+function brillitos(x, y, z, radio, color, cantidad = 60) {
+  const pos = [];
+  for (let i = 0; i < cantidad; i++) pos.push(entre(-radio, radio), entre(0, 5), entre(-radio, radio));
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const puntos = new THREE.Points(geo, new THREE.PointsMaterial({ color, size: 0.28, transparent: true, opacity: 0.85 }));
+  puntos.position.set(x, y, z);
+  escena.add(puntos);
+  animaciones.push((dt, t) => { puntos.rotation.y += dt * 0.2; puntos.position.y = y + Math.sin(t) * 0.4; });
+}
+
+const CONSTRUCTORES = {
+  girasoles(l) {
+    const tallos = [], petalos = [], centros = [];
+    for (let i = 0; i < 400 && tallos.length < 110; i++) {
+      const a = azar() * Math.PI * 2, r = 3.5 + Math.sqrt(azar()) * 11;
+      const x = l.x + Math.cos(a) * r, z = l.z + Math.sin(a) * r, y = altura(x, z), alto = entre(2.2, 3.2), giro = entre(-0.4, 0.4);
+      tallos.push({ x, y: y + alto / 2, z, s: [1, alto, 1], color: '#4f9d3a' });
+      petalos.push({ x, y: y + alto, z, rz: Math.PI / 2, ry: giro, color: alAzar(['#ffd43b', '#ffc61a', '#ffe066']) });
+      centros.push({ x, y: y + alto, z, rz: Math.PI / 2, ry: giro, color: '#7a4b2a' });
+    }
+    instancias(new THREE.CylinderGeometry(0.06, 0.08, 1, 5), tallos);
+    instancias(new THREE.CylinderGeometry(0.65, 0.65, 0.1, 12), petalos);
+    instancias(new THREE.CylinderGeometry(0.3, 0.3, 0.16, 10), centros);
+    return { x: l.x, y: altura(l.x, l.z), z: l.z };
+  },
+
+  hongos(l) {
+    const tallo = new THREE.CylinderGeometry(0.35, 0.45, 1, 10);
+    const sombrero = new THREE.SphereGeometry(1.4, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    const punto = new THREE.SphereGeometry(0.17, 8, 6);
+    function hongo(x, z, alto, color, escala, rebota) {
+      const suelo = altura(x, z);
+      pieza(tallo, '#fff3dc', x, suelo + alto / 2, z, [escala, alto, escala]);
+      const cap = pieza(sombrero, matBrillante(color, 0.35), x, suelo + alto, z, [escala, escala * 0.8, escala]);
+      for (let i = 0; i < 6; i++) {
+        const a = i * 1.05 + 0.3;
+        pieza(punto, '#ffffff', x + Math.cos(a) * 0.95 * escala, suelo + alto + 0.85 * escala, z + Math.sin(a) * 0.95 * escala, escala);
+      }
+      const top = suelo + alto + 0.95 * escala;
+      agregarObstaculo({ x, z, r: 1.3 * escala, top, rebote: rebota, malla: cap, aplastar: 0 });
+      return top;
+    }
+    const colores = ['#ff6b6b', '#c77dff', '#4dabf7', '#ff922b', '#f783ac'];
+    for (let i = 0; i < 9; i++) {
+      const a = i / 9 * Math.PI * 2;
+      hongo(l.x + Math.cos(a) * 7.5, l.z + Math.sin(a) * 7.5, 1.2 + i * 0.3, colores[i % 5], 1, true);
+    }
+    const arriba = hongo(l.x, l.z, 3.6, '#c77dff', 1.8, false);   // el gigante del centro no rebota
+    brillitos(l.x, altura(l.x, l.z), l.z, 11, '#fff3a0');
+    return { x: l.x, y: arriba, z: l.z };
+  },
+
+  lago(l) {
+    const agua = pieza(new THREE.CircleGeometry(28, 48),
+      new THREE.MeshLambertMaterial({ color: '#6cc6ff', transparent: true, opacity: 0.82 }), l.x, AGUA, l.z);
+    agua.rotation.x = -Math.PI / 2;
+    // Camino de nenúfares desde la orilla (del lado del centro del valle) hasta la isla
+    const largo = Math.hypot(l.x, l.z), dx = -l.x / largo, dz = -l.z / largo;
+    let orilla = 25, isla = 3;
+    for (let d = 5; d < 30; d += 0.2) if (altura(l.x + dx * d, l.z + dz * d) > AGUA + 0.05) { orilla = d; break; }
+    for (let d = 0; d < 10; d += 0.2) if (altura(l.x + dx * d, l.z + dz * d) < AGUA) { isla = d; break; }
+    const cantidad = Math.max(2, Math.round((orilla - isla) / 3.5));   // una hoja cada 3,5 metros más o menos
+    const nenufar = new THREE.CylinderGeometry(1.4, 1.4, 0.1, 16), flor = new THREE.IcosahedronGeometry(0.25, 0);
+    for (let i = 0; i < cantidad; i++) {
+      const d = isla + 1.3 + (orilla - isla - 2.6) * (i / (cantidad - 1));
+      const lado = (i % 2 ? 1 : -1) * 0.5;
+      const x = l.x + dx * d - dz * lado, z = l.z + dz * d + dx * lado;
+      pieza(nenufar, '#5fbf5a', x, AGUA + 0.03, z);
+      if (i % 2 === 0) pieza(flor, '#ff9ec7', x + 0.4, AGUA + 0.25, z + 0.3);
+      agregarObstaculo({ x, z, r: 1.4, top: AGUA + 0.08 });
+    }
+    // Juncos en la orilla
+    for (let i = 0; i < 26; i++) {
+      const a = azar() * Math.PI * 2, x = l.x + Math.cos(a) * (orilla + 0.5), z = l.z + Math.sin(a) * (orilla + 0.5);
+      const y = altura(x, z);
+      pieza(geoPata, '#5c9e45', x, y + 0.8, z, [0.6, 4, 0.6]);
+      pieza(geoEsfera, '#8a5a3a', x, y + 1.6, z, [0.07, 0.22, 0.07]);
+    }
+    // Un pececito que salta de vez en cuando
+    const pez = pieza(geoEsfera, '#ff9f43', 0, -50, 0, [0.15, 0.2, 0.35]);
+    let salto = { tiempo: 3, x: 0, z: 0, a: 0 };
+    animaciones.push(dt => {
+      salto.tiempo -= dt;
+      if (salto.tiempo < -1) {   // nuevo salto
+        const a = azar() * Math.PI * 2, r = entre(6, 15);
+        salto = { tiempo: entre(2, 5), x: l.x + Math.cos(a) * r, z: l.z + Math.sin(a) * r, a: azar() * Math.PI * 2 };
+      }
+      const p = -salto.tiempo;   // de 0 a 1 mientras salta
+      if (p >= 0 && p <= 1) {
+        pez.position.set(salto.x + Math.sin(salto.a) * p * 2, AGUA + Math.sin(p * Math.PI) * 1.4 - 0.1, salto.z + Math.cos(salto.a) * p * 2);
+        pez.rotation.set(-Math.cos(p * Math.PI) * 0.9, salto.a, 0);
+      } else pez.position.y = -50;
+    });
+    return { x: l.x, y: altura(l.x, l.z), z: l.z };
+  },
+
+  arbol(l) {
+    const suelo = altura(l.x, l.z), frente = haciaElCentro(l);
+    pieza(new THREE.CylinderGeometry(2.0, 3.0, 24, 12), '#8d5a3b', l.x, suelo + 12, l.z);
+    for (let i = 0; i < 5; i++) {   // raíces
+      const a = i * 1.26, raiz = pieza(new THREE.CylinderGeometry(0.4, 0.9, 4, 6), '#7f5237', l.x + Math.cos(a) * 3, suelo + 0.6, l.z + Math.sin(a) * 3);
+      raiz.rotation.set(Math.sin(a) * 1.1, 0, -Math.cos(a) * 1.1);
+    }
+    const copa = new THREE.IcosahedronGeometry(1, 0);
+    [[0, 25, 0, 8], [5, 22, 3, 6], [-5, 23, -2, 6.5], [2, 28, -4, 6], [-3, 21, 5, 5.5], [4, 27, 5, 5]].forEach(([x, y, z, s]) => {
+      pieza(copa, new THREE.MeshLambertMaterial({ color: alAzar(['#5dbb63', '#4caf50', '#68c27a']), flatShading: true }), l.x + x, suelo + y, l.z + z, s);
+    });
+    agregarObstaculo({ x: l.x, z: l.z, r: 3.0, top: Infinity });
+    // La casita del árbol: una plataforma redonda alrededor del tronco
+    const piso = suelo + 8.2;
+    pieza(new THREE.CylinderGeometry(4.8, 4.8, 0.4, 24), '#c58b5c', l.x, piso - 0.2, l.z);
+    agregarObstaculo({ x: l.x, z: l.z, r: 4.8, top: piso, base: piso - 0.5 });
+    const banderin = frente + 4;
+    pieza(new THREE.CylinderGeometry(0.06, 0.06, 2.5, 6), '#7f5237', l.x + Math.sin(banderin) * 4.4, piso + 1.25, l.z + Math.cos(banderin) * 4.4);
+    pieza(new THREE.ConeGeometry(0.4, 1, 3), '#ff7fb6', l.x + Math.sin(banderin) * 4.4, piso + 2.2, l.z + Math.cos(banderin) * 4.4, [1, 1, 0.3]).rotation.z = -Math.PI / 2;
+    // Escalones: troncos cada vez más altos que dan la vuelta al árbol
+    for (let k = 1; k <= 6; k++) {
+      const a = frente + (k - 1) * 0.62, x = l.x + Math.sin(a) * 6.2, z = l.z + Math.cos(a) * 6.2;
+      const tope = suelo + 1.2 * k, base = altura(x, z) - 0.5;
+      pieza(new THREE.CylinderGeometry(1.1, 1.2, tope - base, 12), '#a8754f', x, (tope + base) / 2, z);
+      pieza(new THREE.CylinderGeometry(1.0, 1.0, 0.05, 12), '#e8c39e', x, tope + 0.02, z);
+      agregarObstaculo({ x, z, r: 1.1, top: tope });
+    }
+    const amigo = frente + 6 * 0.62 + 0.6;
+    return { x: l.x + Math.sin(amigo) * 4.1, y: piso, z: l.z + Math.cos(amigo) * 4.1 };
+  },
+
+  arcoiris(l) {
+    const cima = altura(l.x, l.z), frente = haciaElCentro(l);
+    ['#ff5c5c', '#ff9f43', '#ffd93d', '#6bcb77', '#4d96ff', '#9b5de5'].forEach((color, i) => {
+      const arco = pieza(new THREE.TorusGeometry(13 - i * 0.75, 0.38, 6, 48, Math.PI),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85 }), l.x, cima - 2, l.z);
+      arco.rotation.y = frente;
+    });
+    // El tesoro al final del arcoíris
+    const fin = 11, x = l.x + Math.cos(frente) * fin, z = l.z - Math.sin(frente) * fin, y = altura(x, z);
+    pieza(new THREE.CylinderGeometry(0.9, 0.7, 1.1, 14), '#3b3b4f', x, y + 0.55, z);
+    for (let i = 0; i < 12; i++) pieza(new THREE.CylinderGeometry(0.25, 0.25, 0.08, 10), matBrillante('#ffd43b', 0.5), x + entre(-0.5, 0.5), y + 1.1 + entre(0, 0.4), z + entre(-0.5, 0.5));
+    agregarObstaculo({ x, z, r: 0.9, top: y + 1.1 });
+    brillitos(x, y, z, 1.5, '#ffe066', 25);
+    return { x: l.x, y: cima, z: l.z };
+  },
+
+  cueva(l) {
+    const roca = new THREE.DodecahedronGeometry(1, 0), abertura = Math.atan2(-l.z, -l.x);
+    for (let i = 0; i < 11; i++) {
+      const a = abertura + 0.65 + i * ((Math.PI * 2 - 1.3) / 10), x = l.x + Math.cos(a) * 9, z = l.z + Math.sin(a) * 9;
+      const s = entre(2.6, 3.6), y = altura(x, z);
+      const m = pieza(roca, alAzar(['#9b93b5', '#8d86a8', '#a59fbd']), x, y + s * 0.5, z, [s, s * 1.4, s]);
+      m.rotation.set(azar(), azar() * 3, azar() * 0.4);
+      agregarObstaculo({ x, z, r: s * 0.95, top: y + s * 1.8 });
+    }
+    const cristal = new THREE.OctahedronGeometry(1, 0), colores = ['#7ee8fa', '#f78fb3', '#b388ff', '#80ffdb', '#ffd166'];
+    for (let i = 0; i < 28; i++) {
+      const a = azar() * Math.PI * 2, r = entre(2.2, 6.8), x = l.x + Math.cos(a) * r, z = l.z + Math.sin(a) * r;
+      const h = entre(0.7, 2.4), y = altura(x, z);
+      const m = pieza(cristal, matBrillante(alAzar(colores)), x, y + h * 0.6, z, [h * 0.32, h, h * 0.32]);
+      m.rotation.set(entre(-0.3, 0.3), azar() * 3, entre(-0.3, 0.3));
+      if (h > 1.6) agregarObstaculo({ x, z, r: h * 0.3 + 0.1, top: y + h * 1.5 });
+    }
+    brillitos(l.x, altura(l.x, l.z), l.z, 7, '#c8f7ff');
+    return { x: l.x, y: altura(l.x, l.z), z: l.z };
+  },
+
+  casita(l) {
+    const suelo = altura(l.x, l.z), casa = new THREE.Group();
+    casa.position.set(l.x, suelo, l.z);
+    casa.rotation.y = haciaElCentro(l);     // la puerta mira hacia el centro del valle
+    escena.add(casa);
+    const caja = new THREE.BoxGeometry(1, 1, 1);
+    pieza(caja, '#fff1d6', 0, 1.6, 0, [5, 3.2, 4.5], casa);
+    pieza(new THREE.ConeGeometry(4.3, 2.4, 4), '#ff7f7f', 0, 4.4, 0, 1, casa).rotation.y = Math.PI / 4;
+    pieza(caja, '#a0674b', 0, 0.95, 2.27, [1.1, 1.9, 0.1], casa);                    // puerta
+    for (const lado of [-1, 1]) pieza(caja, matBrillante('#fff3a6', 0.6), 1.6 * lado, 1.9, 2.27, [0.9, 0.9, 0.1], casa); // ventanas
+    pieza(caja, '#c97b63', 1.4, 4.6, -0.8, [0.7, 1.6, 0.7], casa);                   // chimenea
+    pieza(caja, '#4dabf7', -3.2, 0.6, 2.6, [0.5, 0.5, 0.7], casa);                   // buzón
+    pieza(new THREE.CylinderGeometry(0.05, 0.05, 1, 5), '#7f5237', -3.2, 0.2, 2.6, [1, 0.8, 1], casa);
+    casa.updateMatrixWorld();
+    agregarObstaculo({ x: l.x, z: l.z, r: 3.3, top: suelo + 3.2 });
+    // Humo de la chimenea
+    const humo = [];
+    for (let i = 0; i < 5; i++) {
+      const bolita = new THREE.Mesh(geoEsfera, new THREE.MeshLambertMaterial({ color: '#ffffff', transparent: true, opacity: 0.7 }));
+      casa.add(bolita); humo.push(bolita);
+    }
+    animaciones.push((dt, t) => humo.forEach((b, i) => {
+      const p = (t * 0.25 + i / 5) % 1;
+      b.position.set(1.4 + Math.sin(p * 6 + i) * 0.3, 5.5 + p * 4, -0.8);
+      b.scale.setScalar(0.3 + p * 0.6);
+      b.material.opacity = 0.7 * (1 - p);
+    }));
+    // Ovillos de lana y gatitos que juegan alrededor de uno
+    const patio = new THREE.Vector3(0, 0, 7.5).applyMatrix4(casa.matrixWorld);
+    ['#ff8fc7', '#74c0fc', '#ffd43b'].forEach((color, i) => {
+      const a = i * 2.1, x = patio.x + Math.cos(a) * (i === 0 ? 0 : 4.5), z = patio.z + Math.sin(a) * (i === 0 ? 0 : 4.5);
+      pieza(geoEsfera, color, x, altura(x, z) + 0.35, z, 0.35);
+      pieza(new THREE.TorusGeometry(0.34, 0.04, 6, 20), color === '#ff8fc7' ? '#ff6fb0' : '#ffffff', x, altura(x, z) + 0.35, z).rotation.set(1, 0.5, 0);
+    });
+    const nietos = [{ cuerpo: '#f6a04d', rayas: '#d9782c', panza: '#fff3e3', ojos: '#4caf50' },
+                    { cuerpo: '#a3a9b6', rayas: '#7c8290', panza: '#f4f4f7', ojos: '#ffb300' },
+                    { cuerpo: '#3d3842', rayas: '#2b2730', panza: '#ffffff', ojos: '#c6e03a' }].map((p, i) => {
+      const g = crearGato(p);
+      g.grupo.scale.setScalar(0.65); g.sombra.scale.setScalar(0.65);
+      return { g, angulo: i * 2.1 };
+    });
+    animaciones.push((dt, t) => nietos.forEach(n => {
+      n.angulo += dt * 1.5;
+      const x = patio.x + Math.cos(n.angulo) * 2.2, z = patio.z + Math.sin(n.angulo) * 2.2;
+      ubicarGato(n.g, x, altura(x, z), z, -n.angulo);
+      n.g.sombra.scale.multiplyScalar(0.65);
+      animarGato(n.g, 1.2, false, dt, t);
+    }));
+    const puerta = new THREE.Vector3(1.6, 0, 3.4).applyMatrix4(casa.matrixWorld);
+    return { x: puerta.x, y: altura(puerta.x, puerta.z), z: puerta.z };
+  },
+
+  ruinas(l) {
+    const piedra = '#ddd5c4', columna = new THREE.CylinderGeometry(0.7, 0.8, 1, 10), caja = new THREE.BoxGeometry(1, 1, 1);
+    [6, 1.2, 6, 2.4, 3.6, 6, 0.6, 6, 4.8, 6].forEach((alto, i) => {
+      const a = i / 10 * Math.PI * 2, x = l.x + Math.cos(a) * 10, z = l.z + Math.sin(a) * 10, y = altura(x, z) - 0.3;
+      pieza(columna, piedra, x, y + alto / 2, z, [1, alto, 1]);
+      let top = y + alto;
+      if (alto === 6) { pieza(caja, piedra, x, top + 0.25, z, [1.9, 0.5, 1.9]); top += 0.5; }
+      agregarObstaculo({ x, z, r: 0.85, top });
+    });
+    const caida = pieza(columna, piedra, l.x + 4, altura(l.x + 4, l.z + 5) + 0.5, l.z + 5, [1, 5, 1]);   // columna caída
+    caida.rotation.set(Math.PI / 2, 0, 0.6);
+    // Pedestal con la estatua de la primera gata del valle
+    const suelo = altura(l.x, l.z);
+    pieza(caja, piedra, l.x, suelo + 0.6, l.z, [2.6, 1.6, 2.6]);
+    agregarObstaculo({ x: l.x, z: l.z, r: 1.6, top: suelo + 1.4 });
+    const estatua = crearGato({ cuerpo: '#cfc8bb', rayas: '#b9b2a5', panza: '#d9d3c7', ojos: '#b9b2a5' });
+    estatua.grupo.scale.setScalar(1.7);
+    estatua.grupo.position.set(l.x, suelo + 1.4, l.z);
+    estatua.grupo.rotation.y = haciaElCentro(l);
+    estatua.sombra.visible = false;
+    agregarObstaculo({ x: l.x, z: l.z, r: 1.0, top: suelo + 3.6, base: suelo + 1.4 });
+    const a = haciaElCentro(l);
+    return { x: l.x + Math.sin(a) * 4, y: altura(l.x + Math.sin(a) * 4, l.z + Math.cos(a) * 4), z: l.z + Math.cos(a) * 4 };
+  },
+};
+
+// Construimos los 8 lugares y ponemos a cada amigo en su lugar.
+const amigos = LUGARES.map(l => {
+  const pos = CONSTRUCTORES[l.id](l);
+  const g = crearGato(l.amigo.pelaje);
+  return { lugar: l, g, x: pos.x, y: pos.y, z: pos.z, angulo: haciaElCentro(l), desfase: azar() * 10 };
+});
+
+
+/* ---------- 11. MARIPOSAS, NUBES Y EFECTOS ---------- */
+// Mariposas que vuelan alrededor de las flores
+const geoAla = new THREE.PlaneGeometry(0.34, 0.26).rotateX(-Math.PI / 2).translate(0.17, 0, 0);
+const mariposas = [];
+window.centrosDeFlores.slice(0, 32).forEach((c, i) => {
+  if (!sobreTierra(c.x, c.z)) return;
+  const material = new THREE.MeshLambertMaterial({ color: alAzar(['#ff9ec7', '#ffd43b', '#74c0fc', '#b197fc', '#ffa94d']), side: THREE.DoubleSide });
+  const grupo = new THREE.Group(), izq = new THREE.Mesh(geoAla, material), der = new THREE.Mesh(geoAla, material);
+  der.scale.x = -1;
+  grupo.add(izq, der, pieza(geoEsfera, '#4a3b4f', 0, 0, 0, [0.04, 0.04, 0.16], grupo));
+  escena.add(grupo);
+  mariposas.push({ grupo, izq, der, cx: c.x, cz: c.z, radio: entre(2, 5), vel: entre(0.4, 0.9) * (i % 2 ? 1 : -1), angulo: azar() * 6 });
+});
+animaciones.push((dt, t) => mariposas.forEach((m, i) => {
+  m.angulo += dt * m.vel;
+  const x = m.cx + Math.cos(m.angulo) * m.radio + Math.sin(m.angulo * 2.3) * 0.8, z = m.cz + Math.sin(m.angulo) * m.radio;
+  m.grupo.position.set(x, altura(x, z) + 1.3 + Math.sin(t * 1.7 + i) * 0.5, z);
+  m.grupo.rotation.y = -m.angulo + (m.vel > 0 ? 0 : Math.PI);
+  m.izq.rotation.z = Math.sin(t * 16 + i) * 0.9;
+  m.der.rotation.z = -m.izq.rotation.z;
+}));
+
+// Nubes esponjosas
+const matNube = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.45, flatShading: true, fog: false });
+const nubes = [];
+for (let i = 0; i < 16; i++) {
+  const nube = new THREE.Group();
+  for (let j = 0; j < 4; j++) pieza(new THREE.IcosahedronGeometry(1, 1), matNube, j * 4 - 6, entre(-1, 1.5), entre(-2, 2), entre(3, 5.5), nube);
+  nube.position.set(entre(-260, 260), entre(55, 80), entre(-260, 260));
+  escena.add(nube); nubes.push(nube);
+}
+animaciones.push(dt => nubes.forEach(n => { n.position.x += dt * 2; if (n.position.x > 270) n.position.x = -270; }));
+
+// Hongos que se aplastan un poquito al rebotar
+const hongosQueRebotan = [];
+for (const lista of rejilla.values()) for (const o of lista) if (o.rebote && !hongosQueRebotan.includes(o)) hongosQueRebotan.push(o);
+animaciones.push(dt => hongosQueRebotan.forEach(o => {
+  o.aplastar = Math.max(0, o.aplastar - dt * 3);
+  o.malla.scale.y = 0.8 * (1 - Math.sin(o.aplastar * Math.PI) * 0.35);
+}));
+
+// Papelitos de colores (al descubrir) y gotas (al caer al agua)
+const particulas = [];
+const geoPapel = new THREE.BoxGeometry(0.15, 0.15, 0.04);
+function estallido(x, y, z, colores, cantidad, fuerza = 7) {
+  for (let i = 0; i < cantidad; i++) {
+    const m = pieza(geoPapel, alAzar(colores), x, y, z);
+    particulas.push({ m, vx: entre(-1, 1) * fuerza * 0.5, vy: entre(0.6, 1.2) * fuerza, vz: entre(-1, 1) * fuerza * 0.5, vida: 2 });
+  }
+}
+animaciones.push(dt => {
+  for (let i = particulas.length - 1; i >= 0; i--) {
+    const p = particulas[i];
+    p.vy -= 15 * dt; p.vida -= dt;
+    p.m.position.x += p.vx * dt; p.m.position.y += p.vy * dt; p.m.position.z += p.vz * dt;
+    p.m.rotation.x += dt * 8; p.m.rotation.y += dt * 6;
+    if (p.vida <= 0) { escena.remove(p.m); particulas.splice(i, 1); }
+  }
+});
+
+
+/* ---------- 12. CONTROLES (TECLADO, MOUSE Y PANTALLA TÁCTIL) ---------- */
+const teclas = {};
+const entrada = { joyX: 0, joyY: 0, correr: false, salto: 0 };
+const esTactil = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;           // escribiendo el nombre
+  teclas[e.code] = true;
+  if (e.code === 'Escape' && !document.getElementById('cuaderno').classList.contains('oculto')) cerrarCuaderno();
+  if (estado !== 'jugando') return;
+  if (e.code === 'Space') { entrada.salto = 0.15; e.preventDefault(); }
+  if (e.code === 'KeyM' && !e.repeat) maullar();
+  if (e.code === 'KeyC' && !e.repeat) abrirCuaderno();
+  if (e.code === 'KeyP' && !e.repeat) cambiarPista();
+});
+addEventListener('keyup', e => { teclas[e.code] = false; });
+addEventListener('blur', () => { for (const k in teclas) teclas[k] = false; });
+
+// Girar la cámara arrastrando el mouse o el dedo
+let camYaw = Math.PI, camPitch = 0.38, camDist = CONFIG.distanciaCamara, arrastre = null;
+renderer.domElement.addEventListener('pointerdown', e => { arrastre = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
+addEventListener('pointermove', e => {
+  if (!arrastre || e.pointerId !== arrastre.id || estado !== 'jugando') return;
+  camYaw -= (e.clientX - arrastre.x) * 0.006;
+  camPitch = limitar(camPitch + (e.clientY - arrastre.y) * 0.004, 0.05, 1.25);
+  arrastre.x = e.clientX; arrastre.y = e.clientY;
+});
+addEventListener('pointerup', e => { if (arrastre && e.pointerId === arrastre.id) arrastre = null; });
+addEventListener('pointercancel', e => { if (arrastre && e.pointerId === arrastre.id) arrastre = null; });
+renderer.domElement.addEventListener('wheel', e => { camDist = limitar(camDist + e.deltaY * 0.01, 4, 15); }, { passive: true });
+
+// Palanca (joystick) para el celular
+const joystick = document.getElementById('joystick'), palanca = document.getElementById('palanca');
+let dedoJoy = null;
+function moverPalanca(e) {
+  const r = joystick.getBoundingClientRect(), maximo = r.width / 2 - 22;
+  let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const d = Math.hypot(dx, dy);
+  if (d > maximo) { dx *= maximo / d; dy *= maximo / d; }
+  palanca.style.transform = `translate(${dx}px, ${dy}px)`;
+  entrada.joyX = dx / maximo; entrada.joyY = -dy / maximo;
+}
+joystick.addEventListener('pointerdown', e => { dedoJoy = e.pointerId; joystick.setPointerCapture(e.pointerId); moverPalanca(e); });
+joystick.addEventListener('pointermove', e => { if (e.pointerId === dedoJoy) moverPalanca(e); });
+function soltarPalanca(e) {
+  if (e.pointerId !== dedoJoy) return;
+  dedoJoy = null; entrada.joyX = entrada.joyY = 0; palanca.style.transform = '';
+}
+joystick.addEventListener('pointerup', soltarPalanca);
+joystick.addEventListener('pointercancel', soltarPalanca);
+
+document.getElementById('boton-saltar').addEventListener('pointerdown', () => { entrada.salto = 0.15; });
+document.getElementById('boton-miau').addEventListener('pointerdown', () => maullar());
+const botonCorrer = document.getElementById('boton-correr');
+botonCorrer.addEventListener('pointerdown', () => {
+  entrada.correr = !entrada.correr;
+  botonCorrer.classList.toggle('activo', entrada.correr);
+});
+
+
+/* ---------- 13. MOVIMIENTO DEL GATO: CAMINAR, CORRER Y SALTAR ---------- */
+const jugador = { x: 0, y: 0, z: 6, vy: 0, enPiso: true, angulo: Math.PI, rapidez: 0, seguro: { x: 0, z: 6 }, modelo: null };
+jugador.y = altura(jugador.x, jugador.z);
+let avisoAguaHasta = 0;
+
+function moverJugador(dt) {
+  // 1) ¿Hacia dónde quiere ir? (teclado + palanca), según hacia dónde mira la cámara
+  let ix = entrada.joyX, iy = entrada.joyY;
+  if (teclas.KeyD || teclas.ArrowRight) ix += 1;
+  if (teclas.KeyA || teclas.ArrowLeft) ix -= 1;
+  if (teclas.KeyW || teclas.ArrowUp) iy += 1;
+  if (teclas.KeyS || teclas.ArrowDown) iy -= 1;
+  const fuerza = Math.min(1, Math.hypot(ix, iy));
+  const corre = entrada.correr || teclas.ShiftLeft || teclas.ShiftRight;
+  const velocidad = (corre ? CONFIG.velocidadCorrer : CONFIG.velocidadCaminar) * fuerza;
+  let vx = 0, vz = 0;
+  if (fuerza > 0.1) {
+    const adelanteX = -Math.sin(camYaw), adelanteZ = -Math.cos(camYaw);
+    const derechaX = Math.cos(camYaw), derechaZ = -Math.sin(camYaw);
+    let dx = adelanteX * iy + derechaX * ix, dz = adelanteZ * iy + derechaZ * ix;
+    const largo = Math.hypot(dx, dz); dx /= largo; dz /= largo;
+    vx = dx * velocidad; vz = dz * velocidad;
+    // girar al gato suavemente hacia donde camina
+    let diferencia = Math.atan2(dx, dz) - jugador.angulo;
+    diferencia = Math.atan2(Math.sin(diferencia), Math.cos(diferencia));
+    jugador.angulo += diferencia * Math.min(1, dt * 12);
+  }
+  jugador.rapidez += ((fuerza > 0.1 ? velocidad / CONFIG.velocidadCaminar : 0) - jugador.rapidez) * Math.min(1, dt * 10);
+
+  // 2) Moverse y chocar con árboles, rocas, columnas...
+  let nx = jugador.x + vx * dt, nz = jugador.z + vz * dt;
+  for (const o of obstaculosCerca(nx, nz)) {
+    if (jugador.y >= o.top - 0.3 || jugador.y + 1.1 < o.base) continue;   // está encima o pasa por debajo
+    const dx = nx - o.x, dz = nz - o.z, d = Math.hypot(dx, dz), minimo = o.r + RADIO_GATO;
+    if (d < minimo && d > 0.0001) { nx = o.x + dx / d * minimo; nz = o.z + dz / d * minimo; }
+  }
+  const r = Math.hypot(nx, nz);   // borde del valle
+  if (r > CONFIG.radioMundo) {
+    nx *= CONFIG.radioMundo / r; nz *= CONFIG.radioMundo / r;
+    if (performance.now() > avisoAguaHasta) { mostrarAviso('🏔️ ¡Montañas!', 'Más allá no se puede pasar. ¡Explora el valle!'); avisoAguaHasta = performance.now() + 5000; }
+  }
+  // Caminando no se puede entrar al agua (¡a los gatos no les gusta!). Saltando, sí... y te mojas.
+  if (jugador.enPiso && hayAgua(nx, nz, sueloEn(nx, nz, jugador.y).suelo)) {
+    if (performance.now() > avisoAguaHasta) {
+      mostrarAviso('💧 ¡Agua!', 'A los gatos no les gusta mojarse. Busca otra forma de cruzar...');
+      avisoAguaHasta = performance.now() + 5000;
+    }
+  } else { jugador.x = nx; jugador.z = nz; }
+
+  // 3) Saltar y caer
+  entrada.salto -= dt;
+  if (entrada.salto > 0 && jugador.enPiso) {
+    jugador.vy = CONFIG.fuerzaSalto; jugador.enPiso = false; entrada.salto = 0;
+    sonar('salto');
+  }
+  const yAntes = jugador.y;
+  jugador.vy -= CONFIG.gravedad * dt;
+  jugador.y += jugador.vy * dt;
+  // Buscamos el piso desde la altura de antes, así no atraviesa un hongo si cae muy rápido.
+  const { suelo, cosa } = sueloEn(jugador.x, jugador.z, Math.max(jugador.y, yAntes));
+  if (hayAgua(jugador.x, jugador.z, suelo) && jugador.y <= AGUA) { caerAlAgua(); return; }   // cayó al agua
+  if (jugador.y <= suelo) {
+    jugador.y = suelo;
+    if (cosa && cosa.rebote && jugador.vy < -2) {            // ¡boing! un hongo saltarín
+      jugador.vy = CONFIG.reboteHongo; jugador.enPiso = false; cosa.aplastar = 1;
+      sonar('rebote');
+    } else { jugador.vy = 0; jugador.enPiso = true; }
+  } else if (jugador.enPiso && jugador.vy <= 0 && jugador.y - suelo < 0.6) {
+    jugador.y = suelo; jugador.vy = 0;                       // bajando una lomita: pegado al piso
+  } else {
+    jugador.enPiso = false;
+  }
+  if (jugador.enPiso && !hayAgua(jugador.x, jugador.z, suelo)) jugador.seguro = { x: jugador.x, z: jugador.z };
+}
+
+function caerAlAgua() {
+  sonar('agua');
+  estallido(jugador.x, AGUA, jugador.z, ['#ffffff', '#bfe8ff', '#74c0fc'], 30, 6);
+  mostrarAviso('💦 ¡Splash!', `¡Brrr! ${progreso.nombre} se mojó. ¡Inténtalo otra vez!`);
+  jugador.x = jugador.seguro.x; jugador.z = jugador.seguro.z;
+  jugador.y = sueloEn(jugador.x, jugador.z, 100).suelo;
+  jugador.vy = 0; jugador.enPiso = true;
+}
+
+function maullar() {
+  sonar('miau');
+  globoGatoHasta = performance.now() + 1500;
+  globoGato.textContent = alAzar(['¡Miau! 🐾', '¡Miiiau!', '¡Prrr! 💕', '¡Miau, miau!']);
+}
+
+
+/* ---------- 14. CÁMARA ---------- */
+const objetivoCam = new THREE.Vector3(), posicionCam = new THREE.Vector3();
+function actualizarCamara(dt) {
+  objetivoCam.set(jugador.x, jugador.y + 1.1, jugador.z);
+  const distancia = estado === 'menu' ? 5.5 : camDist, inclinacion = estado === 'menu' ? 0.22 : camPitch;
+  posicionCam.set(
+    objetivoCam.x + Math.sin(camYaw) * Math.cos(inclinacion) * distancia,
+    objetivoCam.y + Math.sin(inclinacion) * distancia,
+    objetivoCam.z + Math.cos(camYaw) * Math.cos(inclinacion) * distancia);
+  posicionCam.y = Math.max(posicionCam.y, altura(posicionCam.x, posicionCam.z) + 0.7);   // que no se meta bajo tierra
+  for (const o of obstaculosCerca(posicionCam.x, posicionCam.z)) {                         // ni dentro de un tronco
+    if (o.top !== Infinity) continue;
+    const dx = posicionCam.x - o.x, dz = posicionCam.z - o.z, d = Math.hypot(dx, dz), minimo = o.r + 0.4;
+    if (d < minimo && d > 0.001) { posicionCam.x = o.x + dx / d * minimo; posicionCam.z = o.z + dz / d * minimo; }
+  }
+  camara.position.lerp(posicionCam, 1 - Math.exp(-dt * 10));
+  camara.lookAt(objetivoCam);
+  cielo.position.copy(camara.position);
+  solVisible.position.copy(camara.position).addScaledVector(direccionSol, 420);
+}
+
+function ajustarPantalla() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  camara.aspect = w / h;
+  // En el menú corremos la imagen para que el gatito no quede tapado por la tarjeta.
+  if (estado === 'menu') {
+    if (w >= 800) camara.setViewOffset(w, h, -w * 0.2, 0, w, h);
+    else camara.setViewOffset(w, h, 0, h * 0.26, w, h);
+  } else camara.clearViewOffset();
+  camara.updateProjectionMatrix();
+}
+addEventListener('resize', ajustarPantalla);
+
+
+/* ---------- 15. DESCUBRIMIENTOS, AMIGOS, MAPA Y PISTA ---------- */
+const aviso = document.getElementById('aviso');
+let avisoTiempo;
+function mostrarAviso(titulo, texto, grande = '', ms = 4000) {
+  aviso.replaceChildren();
+  const b = document.createElement('b'); b.textContent = titulo; aviso.append(b);
+  if (grande) { const s = document.createElement('strong'); s.textContent = grande; aviso.append(s); }
+  const span = document.createElement('span'); span.textContent = texto; aviso.append(span);
+  aviso.classList.remove('oculto');
+  aviso.style.animation = 'none'; void aviso.offsetWidth; aviso.style.animation = '';
+  clearTimeout(avisoTiempo);
+  avisoTiempo = setTimeout(() => aviso.classList.add('oculto'), ms);
+}
+
+function revisarDescubrimientos() {
+  for (const l of LUGARES) {
+    if (descubierto(l) || Math.hypot(jugador.x - l.x, jugador.z - l.z) > l.radio) continue;
+    progreso.descubiertos.push(l.id);
+    guardar();
+    sonar('descubrir');
+    estallido(jugador.x, jugador.y + 1.5, jugador.z, ['#ff7fb6', '#ffd43b', '#74c0fc', '#3fc98c', '#b197fc'], 45);
+    mostrarAviso('✨ ¡Lugar secreto descubierto! ✨', l.texto, `${l.emoji} ${l.nombre}`, 5000);
+    actualizarContador();
+    if (progreso.descubiertos.length === LUGARES.length) setTimeout(mostrarFelicitaciones, 5200);
+  }
+}
+
+function actualizarContador() {
+  document.getElementById('contador').textContent = `🗺️ ${progreso.descubiertos.length}/${LUGARES.length}`;
+}
+
+// Globos de diálogo: el amigo más cercano habla, y el gato cuando maúlla.
+const globoAmigo = document.getElementById('globo-amigo'), globoGato = document.getElementById('globo-gato');
+let globoGatoHasta = 0, amigoHablando = null;
+const proyectado = new THREE.Vector3();
+function ponerGlobo(globo, x, y, z) {
+  proyectado.set(x, y, z).project(camara);
+  if (proyectado.z > 1) { globo.classList.add('oculto'); return; }   // está detrás de la cámara
+  globo.style.left = (proyectado.x + 1) / 2 * window.innerWidth + 'px';
+  globo.style.top = (1 - proyectado.y) / 2 * window.innerHeight + 'px';
+  globo.classList.remove('oculto');
+}
+function actualizarGlobos() {
+  let cercano = null, menor = 6.5;
+  if (estado === 'jugando') for (const a of amigos) {
+    const d = Math.hypot(a.x - jugador.x, a.y - jugador.y, a.z - jugador.z);
+    if (d < menor) { menor = d; cercano = a; }
+  }
+  if (cercano !== amigoHablando) {
+    amigoHablando = cercano;
+    if (cercano) {
+      sonar('miau');
+      globoAmigo.innerHTML = '<b></b><br><span></span>';
+      globoAmigo.querySelector('b').textContent = cercano.lugar.amigo.nombre;
+      globoAmigo.querySelector('span').textContent = cercano.lugar.amigo.frase;
+    }
+  }
+  if (cercano) ponerGlobo(globoAmigo, cercano.x, cercano.y + 1.9, cercano.z);
+  else globoAmigo.classList.add('oculto');
+  if (performance.now() < globoGatoHasta) ponerGlobo(globoGato, jugador.x, jugador.y + 1.9, jugador.z);
+  else globoGato.classList.add('oculto');
+}
+
+// Los amigos respiran, mueven la cola y te miran cuando te acercas.
+function animarAmigos(dt, t) {
+  for (const a of amigos) {
+    const d = Math.hypot(a.x - jugador.x, a.z - jugador.z);
+    if (d < 12 && estado === 'jugando') {
+      let diferencia = Math.atan2(jugador.x - a.x, jugador.z - a.z) - a.angulo;
+      diferencia = Math.atan2(Math.sin(diferencia), Math.cos(diferencia));
+      a.angulo += diferencia * Math.min(1, dt * 4);
+    }
+    ubicarGato(a.g, a.x, a.y, a.z, a.angulo);
+    animarGato(a.g, 0, false, dt, t + a.desfase);
+  }
+}
+
+// La pista: una flecha que apunta al lugar secreto más cercano sin descubrir.
+let pistaActiva = false;
+function cambiarPista() {
+  pistaActiva = !pistaActiva;
+  sonar('boton');
+  document.getElementById('boton-pista').classList.toggle('activo', pistaActiva);
+  document.getElementById('pista').classList.toggle('oculto', !pistaActiva);
+}
+function actualizarPista() {
+  if (!pistaActiva) return;
+  let mejor = null, menor = Infinity;
+  for (const l of LUGARES) {
+    const d = Math.hypot(l.x - jugador.x, l.z - jugador.z);
+    if (!descubierto(l) && d < menor) { menor = d; mejor = l; }
+  }
+  const texto = document.getElementById('texto-pista'), flecha = document.getElementById('flecha');
+  if (!mejor) { texto.textContent = '¡Ya descubriste todo! 🏆'; flecha.style.visibility = 'hidden'; return; }
+  const dx = mejor.x - jugador.x, dz = mejor.z - jugador.z;
+  const adelante = -Math.sin(camYaw) * dx - Math.cos(camYaw) * dz, derecha = Math.cos(camYaw) * dx - Math.sin(camYaw) * dz;
+  flecha.style.visibility = 'visible';
+  flecha.style.transform = `rotate(${Math.atan2(derecha, adelante)}rad)`;
+  texto.textContent = `Lugar secreto a ${Math.round(menor)} m`;
+}
+
+// Mapa redondo (el norte está arriba)
+const mapa = document.getElementById('mapa').getContext('2d');
+function dibujarMapa() {
+  const c = mapa, centro = 65, escala = 60 / 186;
+  c.clearRect(0, 0, 130, 130);
+  c.save();
+  c.beginPath(); c.arc(centro, centro, 63, 0, Math.PI * 2); c.fillStyle = '#a7de8a'; c.fill(); c.clip();
+  c.strokeStyle = '#c6cdb4'; c.lineWidth = 10; c.beginPath(); c.arc(centro, centro, 63, 0, Math.PI * 2); c.stroke();
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (const l of LUGARES) {
+    if (!descubierto(l)) continue;
+    if (l.id === 'lago') { c.fillStyle = '#74c0fc'; c.beginPath(); c.arc(centro + l.x * escala, centro + l.z * escala, 22 * escala, 0, Math.PI * 2); c.fill(); }
+    c.font = '15px sans-serif';
+    c.fillText(l.emoji, centro + l.x * escala, centro + l.z * escala);
+  }
+  c.fillStyle = '#5a3e5d'; c.font = 'bold 12px sans-serif'; c.fillText('N', centro, 11);
+  c.translate(centro + jugador.x * escala, centro + jugador.z * escala);
+  c.rotate(Math.PI - jugador.angulo);
+  c.fillStyle = '#ff7fb6'; c.strokeStyle = '#ffffff'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(0, -7); c.lineTo(5.5, 6); c.lineTo(-5.5, 6); c.closePath(); c.fill(); c.stroke();
+  c.restore();
+}
+
+
+/* ---------- 16. MENÚ, CUADERNO Y BOTONES ---------- */
+let estado = 'menu';      // 'menu' o 'jugando'
+let pausado = false;      // true mientras el cuaderno está abierto
+
+function cambiarPelaje(indice) {
+  progreso.pelaje = indice;
+  if (jugador.modelo) {
+    escena.remove(jugador.modelo.grupo, jugador.modelo.sombra);
+  }
+  jugador.modelo = crearGato(PELAJES[indice]);
+  document.querySelectorAll('.pelaje').forEach((b, i) => b.classList.toggle('elegido', i === indice));
+}
+
+function armarMenu() {
+  const caja = document.getElementById('pelajes');
+  PELAJES.forEach((p, i) => {
+    const boton = document.createElement('button');
+    boton.className = 'pelaje';
+    const fondo = p.manchas ? `conic-gradient(${p.cuerpo} 0 40%, ${p.manchas[0]} 0 70%, ${p.manchas[1]} 0)` : p.cuerpo;
+    boton.innerHTML = `<span class="muestra" style="background:${fondo}"></span>${p.nombre}`;
+    boton.addEventListener('click', () => { prepararAudio(); sonar('boton'); cambiarPelaje(i); });
+    caja.append(boton);
+  });
+  document.getElementById('nombre').value = progreso.nombre;
+  document.getElementById('nota-controles').textContent = esTactil
+    ? '🕹️ Mueve a tu gatito con la palanca, salta y corre con los botones, y desliza el dedo para mirar alrededor.'
+    : '⌨️ WASD o flechas: caminar · Shift: correr · Espacio: saltar · M: maullar · Arrastra el mouse para mirar.';
+  cambiarPelaje(progreso.pelaje);
+}
+
+function empezarAExplorar() {
+  prepararAudio();
+  sonar('miau');
+  progreso.nombre = document.getElementById('nombre').value.trim() || 'Mishi';
+  guardar();
+  estado = 'jugando';
+  camYaw = 0;
+  ajustarPantalla();
+  document.getElementById('menu').classList.add('oculto');
+  for (const id of ['marcador', 'mapa']) document.getElementById(id).classList.remove('oculto');
+  if (esTactil) for (const id of ['joystick', 'botones-accion']) document.getElementById(id).classList.remove('oculto');
+  else {
+    const ayuda = document.getElementById('ayuda-teclado');
+    ayuda.classList.remove('oculto');
+    setTimeout(() => ayuda.classList.add('oculto'), 15000);
+  }
+  actualizarContador();
+  const faltan = LUGARES.length - progreso.descubiertos.length;
+  mostrarAviso(`¡Hola, ${progreso.nombre}! 🐾`,
+    faltan === LUGARES.length ? 'En este valle hay 8 lugares secretos. ¿Podrás encontrarlos todos?'
+                              : `Te faltan ${faltan} lugares secretos por descubrir. ¡Suerte!`, '', 6000);
+}
+
+function abrirCuaderno() {
+  pausado = true;
+  sonar('boton');
+  const lista = document.getElementById('lista-lugares');
+  lista.replaceChildren();
+  for (const l of LUGARES) {
+    const fila = document.createElement('div');
+    const ya = descubierto(l);
+    fila.className = 'lugar' + (ya ? '' : ' secreto');
+    fila.innerHTML = `<span class="icono">${ya ? l.emoji : '❓'}</span><div><strong></strong><p></p></div>`;
+    fila.querySelector('strong').textContent = ya ? l.nombre : 'Lugar secreto';
+    fila.querySelector('p').textContent = ya ? `${l.texto} Aquí vive ${l.amigo.nombre}.` : '🔎 Pista: ' + l.pista;
+    lista.append(fila);
+  }
+  document.getElementById('cuaderno-resumen').textContent =
+    `${progreso.nombre} descubrió ${progreso.descubiertos.length} de ${LUGARES.length} lugares secretos.`;
+  document.getElementById('cuaderno').classList.remove('oculto');
+}
+function cerrarCuaderno() {
+  document.getElementById('cuaderno').classList.add('oculto');
+  pausado = false;
+  sonar('boton');
+}
+
+function mostrarFelicitaciones() {
+  pausado = true;
+  sonar('descubrir');
+  document.getElementById('texto-felicitaciones').textContent = `¡Bravo, ${progreso.nombre}!`;
+  document.getElementById('felicitaciones').classList.remove('oculto');
+}
+
+document.getElementById('boton-explorar').addEventListener('click', empezarAExplorar);
+document.getElementById('nombre').addEventListener('keydown', e => { if (e.key === 'Enter') empezarAExplorar(); });
+document.getElementById('boton-cuaderno').addEventListener('click', abrirCuaderno);
+document.getElementById('cerrar-cuaderno').addEventListener('click', cerrarCuaderno);
+document.getElementById('boton-pista').addEventListener('click', cambiarPista);
+document.getElementById('cerrar-felicitaciones').addEventListener('click', () => {
+  document.getElementById('felicitaciones').classList.add('oculto');
+  pausado = false;
+});
+document.getElementById('boton-reiniciar').addEventListener('click', () => {
+  if (!confirm('¿Seguro que quieres borrar los lugares descubiertos y empezar de nuevo?')) return;
+  progreso.descubiertos = [];
+  guardar();
+  actualizarContador();
+  abrirCuaderno();
+});
+const botonSonido = document.getElementById('boton-sonido');
+function pintarBotonSonido() { botonSonido.textContent = progreso.sonido ? '🔊' : '🔇'; }
+botonSonido.addEventListener('click', () => { progreso.sonido = !progreso.sonido; guardar(); pintarBotonSonido(); sonar('boton'); });
+pintarBotonSonido();
+
+
+/* ---------- 17. BUCLE PRINCIPAL ---------- */
+const reloj = new THREE.Clock();
+let tiempo = 0, cuadro = 0, proximoPajaro = 5;
+
+function bucle() {
+  requestAnimationFrame(bucle);
+  const dt = Math.min(reloj.getDelta(), 0.05);
+  tiempo += dt; cuadro++;
+
+  if (estado === 'menu') {
+    camYaw += dt * 0.18;                                  // la cámara da vueltas alrededor del gatito
+    jugador.rapidez = 0;
+  } else if (!pausado) {
+    moverJugador(dt);
+    revisarDescubrimientos();
+    proximoPajaro -= dt;
+    if (proximoPajaro < 0) { sonar('pajaro'); proximoPajaro = 4 + Math.random() * 7; }
+  }
+  ubicarGato(jugador.modelo, jugador.x, jugador.y, jugador.z, jugador.angulo);
+  animarGato(jugador.modelo, jugador.rapidez, !jugador.enPiso, dt, tiempo);
+  animarAmigos(dt, tiempo);
+  animaciones.forEach(animar => animar(dt, tiempo));
+  actualizarCamara(dt);
+  actualizarGlobos();
+  if (estado === 'jugando') {
+    actualizarPista();
+    if (cuadro % 6 === 0) dibujarMapa();
+  }
+  renderer.render(escena, camara);
+}
+
+// ¡Arrancamos!
+armarMenu();
+ajustarPantalla();
+camara.position.set(jugador.x, jugador.y + 3, jugador.z + 6);
+document.getElementById('cargando').classList.add('oculto');
+document.getElementById('menu').classList.remove('oculto');
+window.valleListo = true;
+bucle();
+</script>
+</body>
+</html>
