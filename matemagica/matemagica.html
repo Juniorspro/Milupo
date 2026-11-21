@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matemágica · Sumas, restas y multiplicaciones</title>
+<!-- Letra redondita de Google Fonts. Sin internet se usa otra parecida. -->
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   MATEMÁGICA · ESTILOS
+   1. Colores y base       4. Lección del nivel
+   2. Botones y tarjetas   5. Pantalla de juego
+   3. Inicio y mapa        6. Resultado, festejo y diploma
+   ===================================================================== */
+
+/* ---------- 1. Colores y base ---------- */
+:root {
+  --texto: #2b2d42;
+  --rojo: #ff4d6d;     --rojo-borde: #d62f50;
+  --naranja: #ff8c1a;  --naranja-borde: #d96d00;
+  --amarillo: #ffd23f; --amarillo-borde: #e0a800;
+  --verde: #22b35e;    --verde-borde: #158a45;
+  --celeste: #2fa8ff;  --celeste-borde: #1580d0;
+  --violeta: #8a4dff;  --violeta-borde: #6a2fdb;
+  --rosa: #ff4fa3;     --rosa-borde: #d62f82;
+  --blanco: #ffffff;
+  --sombra: 0 6px 0 rgba(43, 45, 66, .15);
+  --mundo: var(--verde);           /* color del mundo actual (lo cambia el código) */
+  --mundo-claro: #d3f8e2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Baloo 2', 'Comic Sans MS', system-ui, sans-serif; color: var(--texto);
+  background: linear-gradient(160deg, #7fd3ff, #ffe27a 55%, #ff9ec7);
+  min-height: 100vh; overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+}
+button { font-family: inherit; color: inherit; border: none; cursor: pointer; touch-action: manipulation; }
+.oculto { display: none !important; }
+h2 { font-size: 1.9rem; line-height: 1.1; }
+
+.pantalla {
+  display: none; min-height: 100vh; padding: 16px;
+  flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center;
+  position: relative;
+}
+.pantalla.activa { display: flex; }
+
+/* Números y signos que flotan en el fondo */
+.decoracion { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.decoracion span { position: absolute; font-weight: 800; color: rgba(255, 255, 255, .45); animation: flotar 8s ease-in-out infinite; }
+.pantalla > * { position: relative; z-index: 1; }
+
+/* ---------- 2. Botones y tarjetas ---------- */
+.boton {
+  font-size: 1.35rem; font-weight: 700; color: #fff; background: var(--rosa);
+  padding: 12px 28px; border-radius: 999px; box-shadow: 0 6px 0 var(--rosa-borde);
+  transition: transform .08s;
+}
+.boton:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--rosa-borde); }
+.boton.verde    { background: var(--verde);    box-shadow: 0 6px 0 var(--verde-borde); }
+.boton.celeste  { background: var(--celeste);  box-shadow: 0 6px 0 var(--celeste-borde); }
+.boton.violeta  { background: var(--violeta);  box-shadow: 0 6px 0 var(--violeta-borde); }
+.boton.naranja  { background: var(--naranja);  box-shadow: 0 6px 0 var(--naranja-borde); }
+.boton.amarillo { background: var(--amarillo); box-shadow: 0 6px 0 var(--amarillo-borde); color: var(--texto); }
+.boton.blanco   { background: #fff; color: var(--texto); box-shadow: 0 6px 0 #d9dbe8; }
+.boton.chico    { font-size: 1.05rem; padding: 8px 18px; }
+.fila-botones { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+.tarjeta {
+  background: var(--blanco); border-radius: 30px; padding: 22px;
+  width: 100%; max-width: 560px; box-shadow: 0 10px 0 rgba(43, 45, 66, .15);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.chip { background: #fff; border-radius: 999px; padding: 6px 14px; font-weight: 700; box-shadow: 0 4px 0 rgba(43, 45, 66, .12); white-space: nowrap; }
+.globo { background: #fff; border-radius: 22px; padding: 10px 16px; font-size: 1.15rem; font-weight: 600; box-shadow: var(--sombra); position: relative; }
+.profe { width: 110px; flex: none; }
+.profe.grande { width: clamp(140px, 36vw, 190px); animation: respirar 2.2s ease-in-out infinite; cursor: pointer; }
+.profe svg { width: 100%; display: block; overflow: visible; }
+
+/* ---------- 3. Inicio y mapa ---------- */
+.titulo { font-size: clamp(3rem, 13vw, 5.4rem); font-weight: 800; line-height: .95; letter-spacing: 1px; }
+.titulo span { display: inline-block; animation: rebotar 1.6s ease-in-out infinite; text-shadow: 0 5px 0 rgba(43, 45, 66, .18); }
+.subtitulo { font-size: 1.3rem; font-weight: 700; color: #fff; text-shadow: 0 2px 0 rgba(43, 45, 66, .25); }
+.campo-nombre { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 1.1rem; }
+#nombre {
+  font-family: inherit; font-size: 1.4rem; font-weight: 700; text-align: center; color: var(--texto);
+  width: 240px; padding: 6px 12px; border-radius: 18px; border: 4px solid #ffd23f; outline: none; background: #fffdf3;
+}
+#nombre:focus { border-color: var(--rosa); }
+
+#mapa { justify-content: flex-start; }
+.cabecera { width: 100%; max-width: 900px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.cabecera h2 { color: #fff; text-shadow: 0 3px 0 rgba(43, 45, 66, .25); }
+.mundos { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 16px; }
+.mundo { border-radius: 28px; padding: 14px 14px 18px; box-shadow: var(--sombra); }
+.mundo h3 { font-size: 1.45rem; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .18); margin-bottom: 10px; }
+.mundo.bloqueado { filter: grayscale(.75); opacity: .75; }
+.niveles { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.boton-nivel {
+  position: relative; width: 120px; padding: 10px 6px 8px; border-radius: 24px; background: #fff;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: 0 6px 0 rgba(43, 45, 66, .18);
+}
+.boton-nivel:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(43, 45, 66, .18); }
+.boton-nivel .numero {
+  width: 52px; height: 52px; border-radius: 50%; background: var(--color); color: #fff;
+  font-size: 1.7rem; font-weight: 800; display: flex; align-items: center; justify-content: center;
+}
+.boton-nivel .nombre { font-size: .9rem; font-weight: 700; line-height: 1.1; min-height: 2.2em; display: flex; align-items: center; }
+.boton-nivel.cerrado { opacity: .6; }
+.boton-nivel.cerrado .numero { background: #b8bccb; }
+.boton-nivel.siguiente { animation: latir 1.2s ease-in-out infinite; }
+.boton-nivel .aca { position: absolute; top: -26px; right: -14px; width: 54px; }
+.estrellas { font-size: 1.15rem; letter-spacing: 1px; }
+.apagada { filter: grayscale(1); opacity: .3; }
+
+/* ---------- 4. Lección del nivel ---------- */
+#leccion .tarjeta { border-top: 14px solid var(--mundo); }
+.etiqueta { font-weight: 800; color: var(--mundo); text-transform: uppercase; letter-spacing: 1px; font-size: 1rem; }
+.leccion-emoji { font-size: 4rem; line-height: 1; animation: rebotar 1.6s ease-in-out infinite; }
+.leccion-texto { font-size: 1.25rem; font-weight: 500; line-height: 1.35; }
+.ejemplo { background: var(--mundo-claro); border-radius: 20px; padding: 12px 18px; font-size: clamp(1.1rem, 5.2vw, 1.6rem); font-weight: 800; width: 100%; }
+.nota { font-size: 1rem; font-weight: 600; opacity: .75; }
+
+/* ---------- 5. Pantalla de juego ---------- */
+#juego { justify-content: flex-start; gap: 10px; padding-top: 12px; }
+.barra { width: 100%; max-width: 640px; display: flex; align-items: center; gap: 8px; }
+.boton-salir { width: 46px; height: 46px; border-radius: 50%; background: #fff; font-size: 1.3rem; font-weight: 800; box-shadow: 0 4px 0 rgba(43, 45, 66, .15); flex: none; }
+.nombre-nivel { flex: 1; text-align: left; background: #fff; border-radius: 999px; padding: 8px 16px; font-weight: 800; font-size: 1.05rem; box-shadow: 0 4px 0 rgba(43, 45, 66, .12); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.racha { background: var(--amarillo); }
+.puntitos { display: flex; gap: 8px; }
+.puntitos span { width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 255, 255, .7); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .08); }
+.puntitos span.actual { background: #fff; outline: 4px solid var(--mundo); }
+.puntitos span.bien { background: var(--verde); }
+.puntitos span.mal { background: var(--rojo); }
+.ayudante { width: 100%; max-width: 640px; display: flex; align-items: center; gap: 10px; }
+.ayudante .profe { width: 76px; }
+.ayudante .globo { flex: 1; text-align: left; font-size: 1.1rem; }
+.ayudante .globo::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -11px; border: 11px solid transparent; border-left: 0; border-right-color: #fff; }
+
+.pregunta { max-width: 640px; border-top: 12px solid var(--mundo); }
+.enunciado { font-size: 1.3rem; font-weight: 600; line-height: 1.3; }
+.dibujo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; font-size: 2.1rem; line-height: 1.15; }
+.dibujo .grupo { background: var(--mundo-claro); border-radius: 18px; padding: 4px 10px; max-width: 260px; }
+.dibujo .signo { font-size: 2.4rem; font-weight: 800; color: var(--mundo); }
+.dibujo .tachado { position: relative; opacity: .35; }
+.dibujo .tachado::after { content: '✖'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--rojo); font-size: 1.6rem; opacity: 1; }
+.cuenta { font-size: clamp(2.6rem, 12vw, 4rem); font-weight: 800; line-height: 1.1; letter-spacing: 1px; }
+.cuenta .signo { color: var(--mundo); }
+.cajita {
+  display: inline-block; min-width: 1.6em; padding: 0 .2em; border-radius: 16px;
+  background: #fff7d6; border: 4px dashed var(--amarillo-borde); color: var(--texto);
+}
+.texto-saber { font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
+
+.opciones { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.opcion {
+  font-size: 1.9rem; font-weight: 800; color: #fff; padding: 10px 8px; border-radius: 22px; min-height: 74px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, .18); transition: transform .08s;
+}
+.opcion.texto { font-size: 1.25rem; line-height: 1.2; }
+.opcion:active { transform: translateY(4px); }
+.opcion:nth-child(1) { background: var(--celeste); }
+.opcion:nth-child(2) { background: var(--naranja); }
+.opcion:nth-child(3) { background: var(--violeta); }
+.opcion:nth-child(4) { background: var(--rosa); }
+.opcion.correcta { background: var(--verde) !important; transform: scale(1.05); }
+.opcion.incorrecta { background: #c9ccd8 !important; }
+.opcion:disabled { cursor: default; }
+
+.teclado { width: 100%; max-width: 360px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tecla { font-size: 1.9rem; font-weight: 800; padding: 6px; border-radius: 18px; background: #f1f3ff; box-shadow: 0 5px 0 #d4d8ee; min-height: 62px; }
+.tecla:active { transform: translateY(4px); box-shadow: 0 1px 0 #d4d8ee; }
+.tecla.borrar { background: #ffe0e6; box-shadow: 0 5px 0 #f3b4c1; }
+.tecla.listo { background: var(--verde); color: #fff; box-shadow: 0 5px 0 var(--verde-borde); }
+
+.respuesta-info { width: 100%; border-radius: 22px; padding: 12px 16px; font-size: 1.2rem; font-weight: 600; line-height: 1.35; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.respuesta-info.bien { background: #d7f9e4; }
+.respuesta-info.mal { background: #ffe1e7; }
+.respuesta-info b { font-size: 1.4rem; }
+.respuesta-info .explicacion { font-size: 1.15rem; }
+
+/* ---------- 6. Resultado, festejo y diploma ---------- */
+.estrellas-grandes span { font-size: 3.6rem; display: inline-block; animation: aparecer .6s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.resultado-texto { font-size: 1.35rem; font-weight: 700; }
+.nuevo-mundo { background: var(--amarillo); border-radius: 18px; padding: 8px 14px; font-weight: 800; font-size: 1.15rem; animation: latir 1.2s infinite; }
+
+#confeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+.festejo {
+  position: fixed; inset: 0; z-index: 55; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(circle, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 70%);
+}
+.festejo span {
+  font-size: clamp(2.1rem, 9vw, 4rem); font-weight: 800; color: #fff; padding: 2px 26px; border-radius: 22px;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, .18); animation: aparecer .7s cubic-bezier(.3, 1.6, .5, 1) backwards;
+}
+.festejo span:nth-child(1) { background: var(--rosa); transform: rotate(-4deg); animation-delay: .1s; }
+.festejo span:nth-child(2) { background: var(--violeta); transform: rotate(3deg); animation-delay: .8s; }
+.festejo span:nth-child(3) { background: var(--naranja); transform: rotate(-2deg); animation-delay: 1.5s; }
+.festejo.salir { animation: desvanecer .6s forwards; }
+
+#final { background: linear-gradient(160deg, #ffe27a, #ff9ec7 50%, #9fd8ff); }
+.diploma {
+  width: 100%; max-width: 620px; background: #fffdf3; border-radius: 22px; padding: 26px 20px;
+  border: 10px double var(--amarillo-borde); box-shadow: 0 10px 0 rgba(43, 45, 66, .15);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.diploma .sello { font-size: 3.4rem; }
+.diploma h2 { font-size: 2.3rem; color: var(--violeta); }
+.diploma .para { font-size: 1.2rem; font-weight: 600; }
+.diploma .quien { font-size: 2.4rem; font-weight: 800; color: var(--rosa); border-bottom: 4px solid var(--amarillo); padding: 0 20px; }
+.diploma p { font-size: 1.15rem; font-weight: 500; }
+@media print {
+  body { background: #fff; }
+  .pantalla:not(#final), #final .fila-botones, #final > .profe, .decoracion, #confeti, .festejo { display: none !important; }
+  #final { display: flex !important; background: #fff; min-height: 0; }
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes flotar    { 50% { transform: translateY(-18px) rotate(10deg); } }
+@keyframes rebotar   { 50% { transform: translateY(-8px); } }
+@keyframes respirar  { 50% { transform: translateY(-6px) scale(1.02); } }
+@keyframes latir     { 50% { transform: scale(1.06); } }
+@keyframes aparecer  { from { transform: scale(0) rotate(-20deg); opacity: 0; } }
+@keyframes desvanecer { to { opacity: 0; transform: scale(1.1); } }
+@keyframes sacudir   { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes saltito   { 40% { transform: translateY(-10px) scale(1.04); } }
+.sacudir { animation: sacudir .35s; }
+.saltito { animation: saltito .45s; }
+</style>
+</head>
+<body>
+
+<div class="decoracion" id="decoracion"></div>
+<canvas id="confeti"></canvas>
+<div class="festejo oculto" id="festejo"></div>
+
+<!-- =====================================================================
+     PANTALLAS (solo se ve la que tiene la clase "activa")
+     ===================================================================== -->
+
+<!-- 1. INICIO -->
+<section id="inicio" class="pantalla activa">
+  <h1 class="titulo" id="titulo"></h1>
+  <p class="subtitulo">➕ Sumas · ➖ Restas · ✖️ Multiplicaciones</p>
+  <div class="profe grande" id="profe-inicio" onclick="saludar()"></div>
+  <div class="globo" id="globo-inicio">¡Hola! Soy la Profe Mishi. ¿Jugamos con los números?</div>
+  <div class="tarjeta" style="max-width:380px">
+    <label class="campo-nombre" for="nombre">¿Cómo te llamás?
+      <input id="nombre" maxlength="14" placeholder="Tu nombre" autocomplete="off">
+    </label>
+    <button class="boton" onclick="irAlMapa()">▶ ¡A jugar!</button>
+    <button class="boton amarillo chico" id="boton-sonido" onclick="cambiarSonido()">🔊 Sonido: sí</button>
+  </div>
+</section>
+
+<!-- 2. MAPA DE NIVELES -->
+<section id="mapa" class="pantalla">
+  <div class="cabecera">
+    <button class="boton blanco chico" onclick="mostrarPantalla('inicio')">🏠 Inicio</button>
+    <h2 id="saludo-mapa">Elegí un nivel</h2>
+    <span class="chip" id="total-estrellas"></span>
+  </div>
+  <div class="mundos" id="mundos"></div>
+</section>
+
+<!-- 3. LECCIÓN (explica el tema antes de cada nivel) -->
+<section id="leccion" class="pantalla">
+  <div class="tarjeta">
+    <div class="leccion-emoji" id="leccion-emoji"></div>
+    <p class="etiqueta" id="leccion-nivel"></p>
+    <h2 id="leccion-titulo"></h2>
+    <p class="leccion-texto" id="leccion-texto"></p>
+    <div class="ejemplo" id="leccion-ejemplo"></div>
+    <p class="nota" id="leccion-nota"></p>
+    <div class="fila-botones">
+      <button class="boton blanco chico" onclick="mostrarPantalla('mapa')">⬅ Volver</button>
+      <button class="boton verde" onclick="empezarNivel()">¡Empezar! 🚀</button>
+    </div>
+  </div>
+</section>
+
+<!-- 4. JUEGO -->
+<section id="juego" class="pantalla">
+  <div class="barra">
+    <button class="boton-salir" onclick="salirDelNivel()" title="Salir">✖</button>
+    <div class="nombre-nivel" id="juego-nivel"></div>
+    <span class="chip racha oculto" id="racha"></span>
+  </div>
+  <div class="puntitos" id="puntitos"></div>
+  <div class="ayudante">
+    <div class="profe" id="profe-juego"></div>
+    <div class="globo" id="globo-juego"></div>
+  </div>
+  <div class="tarjeta pregunta" id="tarjeta-pregunta">
+    <p class="enunciado oculto" id="enunciado"></p>
+    <div class="dibujo oculto" id="dibujo"></div>
+    <div id="cuenta"></div>
+    <div id="respuestas" style="width:100%;display:flex;justify-content:center"></div>
+    <div class="respuesta-info oculto" id="respuesta-info"></div>
+  </div>
+</section>
+
+<!-- 5. RESULTADO DEL NIVEL -->
+<section id="resultado" class="pantalla">
+  <div class="tarjeta">
+    <div class="profe grande" id="profe-resultado"></div>
+    <h2 id="resultado-titulo"></h2>
+    <div class="estrellas-grandes" id="resultado-estrellas"></div>
+    <p class="resultado-texto" id="resultado-texto"></p>
+    <p class="nuevo-mundo oculto" id="nuevo-mundo"></p>
+    <div class="fila-botones" id="resultado-botones"></div>
+  </div>
+</section>
+
+<!-- 6. FINAL: DIPLOMA -->
+<section id="final" class="pantalla">
+  <div class="profe grande" id="profe-final"></div>
+  <div class="diploma">
+    <div class="sello">🏅</div>
+    <h2>Diploma de Matemágica</h2>
+    <p class="para">Este diploma es para</p>
+    <p class="quien" id="diploma-nombre"></p>
+    <p>por superar los 10 niveles de sumas, restas y multiplicaciones.</p>
+    <p id="diploma-estrellas"></p>
+    <p class="nota" id="diploma-fecha"></p>
+  </div>
+  <div class="fila-botones">
+    <button class="boton amarillo" onclick="window.print()">🖨️ Imprimir diploma</button>
+    <button class="boton celeste" onclick="mostrarPantalla('mapa')">🗺️ Volver al mapa</button>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   MATEMÁGICA · CÓDIGO DEL JUEGO
+   1.  Mundos y niveles
+   2.  Preguntas para saber más (teoría)
+   3.  Progreso guardado
+   4.  Sonidos
+   5.  Papelitos de colores (confeti) y festejos
+   6.  La Profe Mishi (dibujo)
+   7.  Ayudas: azar, mezclar, opciones
+   8.  Cómo se crean las preguntas de cada nivel
+   9.  Pantallas: inicio, mapa y lección
+   10. El juego: mostrar, responder, siguiente
+   11. Fin del nivel y diploma
+   12. Arranque
+   ===================================================================== */
+
+
+/* ---------- 1. MUNDOS Y NIVELES ----------
+   Los niveles van de lo más fácil a lo más difícil. La multiplicación está al final. */
+const MUNDOS = [
+  { nombre: 'Mundo de las Sumas', emoji: '➕', color: '#22b35e', claro: '#d3f8e2', fondo: 'linear-gradient(160deg, #8ff0b4, #ffe27a)' },
+  { nombre: 'Mundo de las Restas', emoji: '➖', color: '#2f80ff', claro: '#d6e8ff', fondo: 'linear-gradient(160deg, #8cc8ff, #9ff5dc)' },
+  { nombre: 'Mundo de las Multiplicaciones', emoji: '✖️', color: '#8a4dff', claro: '#eadfff', fondo: 'linear-gradient(160deg, #c3a6ff, #ffa6d2)' },
+];
+
+// modo: 'opciones' = elegir entre 4 respuestas · 'teclado' = escribir el número
+// saber: de qué tema son las preguntas de teoría del nivel
+const NIVELES = [
+  { mundo: 0, nombre: 'Sumas con dibujitos', emoji: '🍎', modo: 'opciones', saber: ['suma'], crear: sumaConDibujos,
+    leccion: { titulo: 'Sumar es juntar', ejemplo: '🍎🍎 + 🍎🍎🍎 = 5',
+      texto: 'Cuando sumamos, juntamos cosas y contamos cuántas hay en total. El signo de la suma es +, y se lee "más".' } },
+  { mundo: 0, nombre: 'Sumas hasta 20', emoji: '🎈', modo: 'opciones', saber: ['suma'], crear: sumaHasta20,
+    leccion: { titulo: 'Contar desde el más grande', ejemplo: '9 + 3 → 9… 10, 11, 12',
+      texto: 'Para sumar rápido, empezá en el número más grande y seguí contando lo que falta.' } },
+  { mundo: 0, nombre: 'Sumas grandes', emoji: '🚀', modo: 'opciones', saber: ['suma'], crear: sumaGrande,
+    leccion: { titulo: 'Decenas y unidades', ejemplo: '23 + 14 → 20 + 10 = 30 y 3 + 4 = 7 → 37',
+      texto: 'Para sumar números grandes, sumá las decenas con las decenas y las unidades con las unidades.' } },
+  { mundo: 1, nombre: 'Restas con dibujitos', emoji: '🍪', modo: 'opciones', saber: ['resta'], crear: restaConDibujos,
+    leccion: { titulo: 'Restar es quitar', ejemplo: '🍪🍪🍪🍪🍪 − 🍪🍪 = 3',
+      texto: 'Cuando restamos, sacamos algunas cosas y contamos cuántas quedan. El signo de la resta es −, y se lee "menos".' } },
+  { mundo: 1, nombre: 'Restas hasta 20', emoji: '🐞', modo: 'opciones', saber: ['resta'], crear: restaHasta20,
+    leccion: { titulo: 'Contar hacia atrás', ejemplo: '12 − 3 → 12… 11, 10, 9',
+      texto: 'Para restar, podés empezar en el número grande y contar hacia atrás.' } },
+  { mundo: 1, nombre: 'Restas grandes', emoji: '🏔️', modo: 'teclado', saber: ['resta'], crear: restaGrande,
+    leccion: { titulo: 'Restar por partes', ejemplo: '58 − 23 → 50 − 20 = 30 y 8 − 3 = 5 → 35',
+      texto: 'Restá las decenas con las decenas y las unidades con las unidades. ¡Desde este nivel escribís vos la respuesta!' } },
+  { mundo: 1, nombre: 'Problemas para pensar', emoji: '🧠', modo: 'teclado', saber: ['suma', 'resta'], crear: problema,
+    leccion: { titulo: '¿Suma o resta?', ejemplo: 'Tenía 8 caramelos y me comí 3 → 8 − 3 = 5',
+      texto: 'Leé con atención. Si algo se junta o se agrega, es una suma. Si algo se va, se gasta o se come, es una resta.' } },
+  { mundo: 2, nombre: 'Multiplicar es sumar', emoji: '🍩', modo: 'opciones', saber: ['multiplicacion'], crear: multiplicarConGrupos,
+    leccion: { titulo: 'Grupos iguales', ejemplo: '🍩🍩  🍩🍩  🍩🍩 → 2 + 2 + 2 = 3 × 2 = 6',
+      texto: 'Multiplicar es sumar varias veces el mismo número. 3 × 2 quiere decir "3 veces 2". El signo × se lee "por".' } },
+  { mundo: 2, nombre: 'Tablas del 2, 3, 4, 5 y 10', emoji: '⭐', modo: 'teclado', saber: ['multiplicacion'], crear: () => tabla([2, 3, 4, 5, 10]),
+    leccion: { titulo: 'Las primeras tablas', ejemplo: '5 × 4 → 5, 10, 15, 20',
+      texto: 'La tabla del 2 es contar de 2 en 2, la del 5 es contar de 5 en 5 y la del 10, de 10 en 10.' } },
+  { mundo: 2, nombre: 'Tablas del 6 al 9', emoji: '🏆', modo: 'teclado', saber: ['multiplicacion'], crear: () => tabla([6, 7, 8, 9]),
+    leccion: { titulo: '¡El gran desafío final!', ejemplo: '7 × 6 → 6 × 6 = 36, más 6 = 42',
+      texto: 'Estas son las tablas más difíciles. Truco: si no te acordás, usá la tabla del número anterior y sumá una vez más.' } },
+];
+const PREGUNTAS_POR_NIVEL = 8;
+const PARA_PASAR = 6;      // respuestas correctas que se necesitan para pasar de nivel
+
+
+/* ---------- 2. PREGUNTAS PARA SABER MÁS ----------
+   La primera opción es siempre la correcta (el juego las mezcla al mostrarlas). */
+const SABER = {
+  suma: [
+    { p: '¿Qué signo usamos para sumar?', r: ['+', '−', '×'], dato: 'El signo + se lee "más" y significa juntar.' },
+    { p: '¿Cómo se llama el resultado de una suma?', r: ['Suma o total', 'Diferencia', 'Producto'], dato: 'El resultado de una suma se llama suma o total.' },
+    { p: 'Si a un número le sumamos 0, ¿qué pasa?', r: ['Queda igual', 'Se vuelve 0', 'Se hace el doble'], dato: 'Sumar 0 no agrega nada: 7 + 0 = 7.' },
+    { p: '¿3 + 5 da lo mismo que 5 + 3?', r: ['Sí, las dos dan 8', 'No, dan distinto'], dato: 'En la suma, el orden no cambia el resultado.' },
+    { p: '¿Cuál es el doble de 4?', r: ['8', '6', '44'], dato: 'El doble es sumar un número con él mismo: 4 + 4 = 8.' },
+    { p: '¿Qué número sigue? 2, 4, 6, 8, …', r: ['10', '9', '12'], dato: 'Vamos sumando de 2 en 2: 8 + 2 = 10.' },
+  ],
+  resta: [
+    { p: '¿Qué signo usamos para restar?', r: ['−', '+', '×'], dato: 'El signo − se lee "menos" y significa quitar.' },
+    { p: 'Restar es…', r: ['Quitar o sacar', 'Juntar', 'Repetir'], dato: 'Cuando restamos, sacamos una parte y vemos cuánto queda.' },
+    { p: 'Si a un número le restamos 0, ¿qué pasa?', r: ['Queda igual', 'Da 0', 'Da 1'], dato: 'Si no sacamos nada, queda igual: 9 − 0 = 9.' },
+    { p: '¿Cuánto da 6 − 6?', r: ['0', '6', '12'], dato: 'Si sacamos todo, no queda nada: 6 − 6 = 0.' },
+    { p: '¿Qué suma sirve para comprobar que 9 − 4 = 5?', r: ['5 + 4 = 9', '9 + 4 = 13', '5 + 5 = 10'], dato: 'La resta es lo contrario de la suma: si 9 − 4 = 5, entonces 5 + 4 = 9.' },
+    { p: '¿Cuál es la mitad de 10?', r: ['5', '2', '20'], dato: 'La mitad es repartir en dos partes iguales: 5 y 5.' },
+  ],
+  multiplicacion: [
+    { p: '¿Qué signo usamos para multiplicar?', r: ['×', '+', '−'], dato: 'El signo × se lee "por". 3 × 2 se lee "tres por dos".' },
+    { p: '3 × 4 es lo mismo que…', r: ['4 + 4 + 4', '3 + 4', '4 − 3'], dato: 'Multiplicar es sumar varias veces: 3 veces 4 es 4 + 4 + 4 = 12.' },
+    { p: '¿Cómo se llama el resultado de una multiplicación?', r: ['Producto', 'Resta', 'Mitad'], dato: 'El resultado de una multiplicación se llama producto.' },
+    { p: 'Un número multiplicado por 1 da…', r: ['El mismo número', 'Siempre 1', 'Siempre 0'], dato: 'Una vez un número es ese mismo número: 8 × 1 = 8.' },
+    { p: 'Un número multiplicado por 0 da…', r: ['0', 'El mismo número', '1'], dato: 'Cero veces cualquier cosa es nada: 5 × 0 = 0.' },
+    { p: '¿2 × 6 da lo mismo que 6 × 2?', r: ['Sí, las dos dan 12', 'No, dan distinto'], dato: 'En la multiplicación, el orden tampoco cambia el resultado.' },
+    { p: '¿Cuánto es 7 × 10?', r: ['70', '17', '710'], dato: 'Para multiplicar por 10, le agregamos un 0 al número: 7 → 70.' },
+    { p: 'Un gato tiene 4 patas. ¿Cuántas patas tienen 3 gatos?', r: ['12', '7', '34'], dato: '3 gatos × 4 patas = 4 + 4 + 4 = 12 patas. 🐱' },
+  ],
+};
+
+
+/* ---------- 3. PROGRESO GUARDADO ---------- */
+const progreso = { estrellas: Array(NIVELES.length).fill(0), nombre: '', sonido: true };
+try { Object.assign(progreso, JSON.parse(localStorage.getItem('matemagica')) || {}); } catch (error) {}
+function guardar() { try { localStorage.setItem('matemagica', JSON.stringify(progreso)); } catch (error) {} }
+const totalEstrellas = () => progreso.estrellas.reduce((a, b) => a + b, 0);
+const nivelAbierto = n => n === 0 || progreso.estrellas[n - 1] > 0;
+
+
+/* ---------- 4. SONIDOS (los fabrica el navegador) ---------- */
+let audio = null;
+function tono(frecuencia, inicio, duracion, tipo = 'triangle', volumen = 0.18) {
+  const osc = audio.createOscillator(), vol = audio.createGain(), t = audio.currentTime + inicio;
+  osc.type = tipo; osc.frequency.value = frecuencia;
+  vol.gain.setValueAtTime(0.0001, t);
+  vol.gain.exponentialRampToValueAtTime(volumen, t + 0.02);
+  vol.gain.exponentialRampToValueAtTime(0.0001, t + duracion);
+  osc.connect(vol).connect(audio.destination);
+  osc.start(t); osc.stop(t + duracion + 0.05);
+}
+const SONIDOS = {   // cada nota: [frecuencia, cuándo empieza, cuánto dura]
+  boton: [[660, 0, .08]],
+  bien:  [[784, 0, .12], [1047, .1, .22]],
+  mal:   [[330, 0, .18], [262, .16, .28]],
+  racha: [[784, 0, .1], [988, .08, .1], [1175, .16, .1], [1568, .24, .25]],
+  nivel: [[523, 0, .15], [659, .15, .15], [784, .3, .15], [1047, .45, .3], [784, .75, .12], [1047, .87, .5]],
+};
+function sonar(nombre) {
+  if (!progreso.sonido) return;
+  try {
+    if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === 'suspended') audio.resume();
+    SONIDOS[nombre].forEach(([f, i, d]) => tono(f, i, d));
+  } catch (error) {}
+}
+function cambiarSonido() {
+  progreso.sonido = !progreso.sonido;
+  guardar(); pintarBotonSonido(); sonar('boton');
+}
+function pintarBotonSonido() {
+  document.getElementById('boton-sonido').textContent = progreso.sonido ? '🔊 Sonido: sí' : '🔇 Sonido: no';
+}
+
+
+/* ---------- 5. PAPELITOS DE COLORES (CONFETI) Y FESTEJOS ----------
+   Dibujamos los papelitos en un <canvas> que está encima de todo. */
+const lienzo = document.getElementById('confeti'), pincel = lienzo.getContext('2d');
+const COLORES = ['#ff4d6d', '#ff8c1a', '#ffd23f', '#22b35e', '#2fa8ff', '#8a4dff', '#ff4fa3'];
+const CARTELES = ['¡Felicitaciones!', '¡Sos un genio!', '¡Pasaste de nivel!', '¡Bravo!', '¡Genial!', '¡Matemágico!'];
+let papelitos = [], lloviendoHasta = 0, animandoConfeti = false;
+
+function ajustarLienzo() {
+  const escala = Math.min(window.devicePixelRatio || 1, 2);
+  lienzo.width = innerWidth * escala; lienzo.height = innerHeight * escala;
+  pincel.setTransform(escala, 0, 0, escala, 0, 0);
+}
+addEventListener('resize', ajustarLienzo);
+
+function nuevoPapelito(x, y, vx, vy, texto = null) {
+  papelitos.push({
+    x, y, vx, vy, texto, color: alAzar(COLORES),
+    ancho: 7 + Math.random() * 7, alto: 10 + Math.random() * 8,
+    giro: Math.random() * 6, velGiro: (Math.random() - 0.5) * 0.3, vaiven: Math.random() * 6,
+    redondo: Math.random() < 0.3,
+  });
+}
+
+// Explosión de papelitos desde un punto (cuando acertás una respuesta)
+function explosion(x, y, cantidad = 35) {
+  for (let i = 0; i < cantidad; i++) {
+    const angulo = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, fuerza = 5 + Math.random() * 8;
+    nuevoPapelito(x, y, Math.cos(angulo) * fuerza, Math.sin(angulo) * fuerza);
+  }
+  arrancarConfeti();
+}
+function explosionDesde(elemento, cantidad) {
+  const r = elemento.getBoundingClientRect();
+  explosion(r.left + r.width / 2, r.top + r.height / 2, cantidad);
+}
+
+// Lluvia de papelitos y carteles con mensajes (cuando pasás de nivel)
+function lluvia(segundos = 4) {
+  lloviendoHasta = performance.now() + segundos * 1000;
+  const carteles = 9;
+  for (let i = 0; i < carteles; i++) {
+    setTimeout(() => {
+      if (performance.now() < lloviendoHasta) nuevoPapelito(Math.random() * innerWidth, -40, (Math.random() - 0.5) * 1.5, 1, CARTELES[i % CARTELES.length]);
+    }, i * 380);
+  }
+  arrancarConfeti();
+}
+
+function arrancarConfeti() {
+  if (animandoConfeti) return;
+  animandoConfeti = true;
+  requestAnimationFrame(moverConfeti);
+}
+
+function moverConfeti() {
+  pincel.clearRect(0, 0, innerWidth, innerHeight);
+  if (performance.now() < lloviendoHasta) {           // mientras llueve, caen papelitos nuevos
+    for (let i = 0; i < 4; i++) nuevoPapelito(Math.random() * innerWidth, -20, (Math.random() - 0.5) * 2, 2 + Math.random() * 3);
+  }
+  for (const p of papelitos) {
+    p.vy = Math.min(p.vy + (p.texto ? 0.05 : 0.18), p.texto ? 3.2 : 6);   // caen (los carteles más despacio)
+    p.vx *= 0.99;
+    p.vaiven += 0.06;
+    p.x += p.vx + Math.sin(p.vaiven) * (p.texto ? 0.8 : 0.6);
+    p.y += p.vy;
+    p.giro += p.velGiro;
+    pincel.save();
+    pincel.translate(p.x, p.y);
+    if (p.texto) {                                       // cartel con mensaje
+      pincel.rotate(Math.sin(p.vaiven) * 0.25);
+      pincel.font = '800 20px "Baloo 2", sans-serif';
+      const ancho = pincel.measureText(p.texto).width + 24;
+      pincel.fillStyle = p.color;
+      pincel.beginPath();
+      if (pincel.roundRect) pincel.roundRect(-ancho / 2, -18, ancho, 36, 12);   // navegadores nuevos
+      else pincel.rect(-ancho / 2, -18, ancho, 36);                              // navegadores viejos
+      pincel.fill();
+      pincel.fillStyle = '#ffffff'; pincel.textAlign = 'center'; pincel.textBaseline = 'middle';
+      pincel.fillText(p.texto, 0, 2);
+    } else {                                             // papelito común que da vueltas
+      pincel.rotate(p.giro);
+      pincel.scale(1, Math.cos(p.giro * 1.7));
+      pincel.fillStyle = p.color;
+      if (p.redondo) { pincel.beginPath(); pincel.arc(0, 0, p.ancho / 2, 0, Math.PI * 2); pincel.fill(); }
+      else pincel.fillRect(-p.ancho / 2, -p.alto / 2, p.ancho, p.alto);
+    }
+    pincel.restore();
+  }
+  papelitos = papelitos.filter(p => p.y < innerHeight + 60);
+  if (papelitos.length || performance.now() < lloviendoHasta) requestAnimationFrame(moverConfeti);
+  else { animandoConfeti = false; pincel.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+// Corta la lluvia de papelitos y los mensajes (al cambiar de pantalla)
+function pararFestejo() {
+  lloviendoHasta = 0;
+  papelitos = [];
+  clearTimeout(festejar.reloj);
+  document.getElementById('festejo').classList.add('oculto');
+}
+
+// Mensajes gigantes en el centro de la pantalla
+function festejar(mensajes) {
+  const festejo = document.getElementById('festejo');
+  festejo.innerHTML = mensajes.map(m => `<span>${m}</span>`).join('');
+  festejo.classList.remove('oculto', 'salir');
+  clearTimeout(festejar.reloj);
+  festejar.reloj = setTimeout(() => {
+    festejo.classList.add('salir');
+    festejar.reloj = setTimeout(() => festejo.classList.add('oculto'), 600);
+  }, 3600);
+}
+
+
+/* ---------- 6. LA PROFE MISHI (dibujo SVG) ----------
+   cara: 'feliz' (ojos abiertos) o 'contenta' (ojitos cerrados). */
+function profeMishi(cara = 'feliz') {
+  const borde = '#6b4a3a', naranja = '#ffb26b', rayas = '#f08a3c';
+  const ojos = cara === 'contenta'
+    ? `<path d="M32 47 Q38 40 44 47 M56 47 Q62 40 68 47" fill="none" stroke="${borde}" stroke-width="3" stroke-linecap="round"/>`
+    : `<ellipse cx="38" cy="46" rx="5.5" ry="7" fill="#3b2b3f"/><ellipse cx="62" cy="46" rx="5.5" ry="7" fill="#3b2b3f"/>
+       <circle cx="40" cy="43" r="2.2" fill="#fff"/><circle cx="64" cy="43" r="2.2" fill="#fff"/>`;
+  return `<svg viewBox="0 -8 100 110" aria-hidden="true">
+    <path d="M73 82 Q97 78 90 55" fill="none" stroke="${borde}" stroke-width="10" stroke-linecap="round"/>
+    <path d="M73 82 Q97 78 90 55" fill="none" stroke="${naranja}" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="50" cy="81" rx="25" ry="16" fill="${naranja}" stroke="${borde}" stroke-width="2.2"/>
+    <ellipse cx="50" cy="86" rx="12" ry="8" fill="#fff6ea"/>
+    <ellipse cx="38" cy="95" rx="7" ry="4.5" fill="${naranja}" stroke="${borde}" stroke-width="2.2"/>
+    <ellipse cx="62" cy="95" rx="7" ry="4.5" fill="${naranja}" stroke="${borde}" stroke-width="2.2"/>
+    <path d="M20 35 L24 7 L46 23 Z" fill="${naranja}" stroke="${borde}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M80 35 L76 7 L54 23 Z" fill="${naranja}" stroke="${borde}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M26 28 L28 15 L38 23 Z M74 28 L72 15 L62 23 Z" fill="#ffb3c7"/>
+    <ellipse cx="50" cy="47" rx="33" ry="27" fill="${naranja}" stroke="${borde}" stroke-width="2.2"/>
+    <path d="M44 22 L46 30 M50 21 L50 30 M56 22 L54 30" stroke="${rayas}" stroke-width="3" stroke-linecap="round"/>
+    ${ojos}
+    <ellipse cx="28" cy="57" rx="6" ry="3.5" fill="#ff8fb1" opacity=".55"/>
+    <ellipse cx="72" cy="57" rx="6" ry="3.5" fill="#ff8fb1" opacity=".55"/>
+    <path d="M46.5 54 H53.5 L50 57.5 Z" fill="#ff7aa2" stroke="#ff7aa2" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M50 58 Q47 63 43 60.5 M50 58 Q53 63 57 60.5" fill="none" stroke="${borde}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M21 53 L7 50 M21 57 L7 60 M79 53 L93 50 M79 57 L93 60" stroke="${borde}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+    <!-- birrete de profe -->
+    <path d="M30 17 Q50 24 70 17 L70 9 L30 9 Z" fill="#2b2d42"/>
+    <path d="M16 6 L50 -6 L84 6 L50 18 Z" fill="#3a3d5c" stroke="#2b2d42" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M50 6 L80 9 L80 22" fill="none" stroke="#ffd23f" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="80" cy="24" r="3.5" fill="#ffd23f"/>
+  </svg>`;
+}
+
+
+/* ---------- 7. AYUDAS: AZAR, MEZCLAR, OPCIONES ---------- */
+const numeroAzar = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const alAzar = lista => lista[Math.floor(Math.random() * lista.length)];
+function mezclar(lista) {
+  const copia = [...lista];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+// 4 respuestas posibles: la correcta y otras parecidas (para que haya que pensar).
+function opcionesNumericas(correcta, parecidas = []) {
+  const lista = [correcta];
+  const candidatas = [...parecidas, ...mezclar([1, -1, 2, -2, 3, -3]).map(d => correcta + d)];
+  for (const n of candidatas) if (lista.length < 4 && n >= 0 && !lista.includes(n)) lista.push(n);
+  return mezclar(lista);
+}
+const repetir = (texto, veces) => Array(veces).fill(texto).join('');
+const DIBUJITOS = ['🍎', '⭐', '🐟', '🎈', '🍪', '🌸', '🐞', '🍓', '🐥', '🍩'];
+const NOMBRES = ['Sofi', 'Tomi', 'Valen', 'Juli', 'Mati', 'Lucía', 'Benja', 'Emma', 'Santi', 'Mía'];
+
+
+/* ---------- 8. CÓMO SE CREAN LAS PREGUNTAS DE CADA NIVEL ----------
+   Cada función devuelve una pregunta:
+   { cuenta: '7 + 5', respuesta: 12, explicacion: '...', dibujo: (opcional), enunciado: (opcional), parecidas: [...] } */
+
+function sumaConDibujos() {
+  const a = numeroAzar(1, 5), b = numeroAzar(1, 5), d = alAzar(DIBUJITOS);
+  return {
+    cuenta: `${a} + ${b}`, respuesta: a + b,
+    dibujo: `<span class="grupo">${repetir(d, a)}</span><span class="signo">+</span><span class="grupo">${repetir(d, b)}</span>`,
+    explicacion: `Juntamos ${a} y ${b}, y contamos todos: ${a} + ${b} = ${a + b}.`,
+  };
+}
+
+function sumaHasta20() {
+  let a, b;
+  do { a = numeroAzar(3, 12); b = numeroAzar(2, 9); } while (a + b > 20);
+  const grande = Math.max(a, b), chico = Math.min(a, b);
+  const pasos = Array.from({ length: chico }, (_, i) => grande + i + 1).join(', ');
+  return {
+    cuenta: `${a} + ${b}`, respuesta: a + b,
+    explicacion: `Empezá en ${grande} y contá ${chico} más: ${pasos}. ¡Da ${a + b}!`,
+  };
+}
+
+function sumaGrande() {   // sin "llevarse" ninguna: las unidades suman menos de 10
+  const d1 = numeroAzar(1, 6), d2 = numeroAzar(1, 9 - d1), u1 = numeroAzar(0, 9), u2 = numeroAzar(0, 9 - u1);
+  const a = d1 * 10 + u1, b = d2 * 10 + u2;
+  return {
+    cuenta: `${a} + ${b}`, respuesta: a + b, parecidas: [a + b + 10, a + b - 10],
+    explicacion: `Decenas: ${d1 * 10} + ${d2 * 10} = ${(d1 + d2) * 10}. Unidades: ${u1} + ${u2} = ${u1 + u2}. Juntamos: ${a + b}.`,
+  };
+}
+
+function restaConDibujos() {
+  const a = numeroAzar(3, 10), b = numeroAzar(1, a - 1), d = alAzar(DIBUJITOS);
+  const dibujos = Array.from({ length: a }, (_, i) => `<span class="${i >= a - b ? 'tachado' : ''}">${d}</span>`).join('');
+  return {
+    cuenta: `${a} − ${b}`, respuesta: a - b,
+    dibujo: `<span class="grupo">${dibujos}</span>`,
+    explicacion: `Teníamos ${a}, tachamos ${b} y quedan ${a - b}: ${a} − ${b} = ${a - b}.`,
+  };
+}
+
+function restaHasta20() {
+  const a = numeroAzar(11, 20), b = numeroAzar(2, 9), r = a - b;
+  const explicacion = b <= 5
+    ? `Contá hacia atrás desde ${a}: ${Array.from({ length: b }, (_, i) => a - i - 1).join(', ')}. ¡Quedan ${r}!`
+    : `${a} − ${b} = ${r}. Comprobalo con una suma: ${r} + ${b} = ${a}.`;
+  return { cuenta: `${a} − ${b}`, respuesta: r, explicacion };
+}
+
+function restaGrande() {   // sin "pedir prestado": cada unidad de arriba es mayor o igual
+  const d1 = numeroAzar(3, 9), d2 = numeroAzar(1, d1 - 1), u1 = numeroAzar(0, 9), u2 = numeroAzar(0, u1);
+  const a = d1 * 10 + u1, b = d2 * 10 + u2;
+  return {
+    cuenta: `${a} − ${b}`, respuesta: a - b,
+    explicacion: `Decenas: ${d1 * 10} − ${d2 * 10} = ${(d1 - d2) * 10}. Unidades: ${u1} − ${u2} = ${u1 - u2}. Juntamos: ${a - b}.`,
+  };
+}
+
+function problema() {
+  const nombre = alAzar(NOMBRES);
+  if (Math.random() < 0.5) {   // problemas de suma
+    const a = numeroAzar(5, 30), b = numeroAzar(3, 20);
+    const textos = [
+      `${nombre} tiene ${a} figuritas y le regalan ${b}. ¿Cuántas figuritas tiene ahora?`,
+      `En una pecera hay ${a} peces rojos y ${b} peces azules. ¿Cuántos peces hay en total?`,
+      `En el colectivo viajan ${a} personas y suben ${b} más. ¿Cuántas personas viajan ahora?`,
+      `${nombre} leyó ${a} páginas ayer y ${b} páginas hoy. ¿Cuántas páginas leyó en total?`,
+    ];
+    return { enunciado: alAzar(textos), cuenta: '¿Cuánto es?', respuesta: a + b,
+             explicacion: `Es una suma, porque se junta o se agrega: ${a} + ${b} = ${a + b}.` };
+  }
+  const a = numeroAzar(10, 40), b = numeroAzar(2, a - 2);   // problemas de resta
+  const textos = [
+    `${nombre} tenía ${a} caramelos y se comió ${b}. ¿Cuántos caramelos le quedan?`,
+    `En un árbol hay ${a} pájaros y se van volando ${b}. ¿Cuántos pájaros quedan?`,
+    `Una caja tiene ${a} lápices. Si sacamos ${b}, ¿cuántos quedan en la caja?`,
+    `${nombre} tiene ${a} pesos y gasta ${b} en un helado. ¿Cuántos pesos le quedan?`,
+  ];
+  return { enunciado: alAzar(textos), cuenta: '¿Cuánto es?', respuesta: a - b,
+           explicacion: `Es una resta, porque algo se va o se gasta: ${a} − ${b} = ${a - b}.` };
+}
+
+function multiplicarConGrupos() {
+  const grupos = numeroAzar(2, 5), cada = numeroAzar(2, 5), d = alAzar(DIBUJITOS);
+  return {
+    enunciado: `Hay ${grupos} grupos de ${cada}. ¿Cuántos hay en total?`,
+    cuenta: `${grupos} × ${cada}`, respuesta: grupos * cada, parecidas: [grupos + cada, grupos * cada + cada, grupos * cada - cada],
+    dibujo: Array.from({ length: grupos }, () => `<span class="grupo">${repetir(d, cada)}</span>`).join(''),
+    explicacion: `${repetir(cada + ' + ', grupos - 1)}${cada} = ${grupos * cada}. ¡Por eso ${grupos} × ${cada} = ${grupos * cada}!`,
+  };
+}
+
+function tabla(tablas) {
+  const t = alAzar(tablas), n = numeroAzar(2, 10);
+  const [a, b] = Math.random() < 0.5 ? [t, n] : [n, t];   // a veces "7 × 3" y a veces "3 × 7"
+  return { cuenta: `${a} × ${b}`, respuesta: a * b, explicacion: explicarMultiplicacion(a, b) };
+}
+
+function explicarMultiplicacion(a, b) {
+  const veces = Math.min(a, b), numero = Math.max(a, b), c = a * b;
+  if (numero === 10) return `Para multiplicar por 10, le agregamos un 0: ${veces} × 10 = ${c}.`;
+  if (veces <= 4) return `${a} × ${b} es sumar ${numero}, ${veces} veces: ${repetir(numero + ' + ', veces - 1)}${numero} = ${c}.`;
+  return `Truco: ${a} × ${b} es lo mismo que ${a - 1} × ${b} más ${b}: ${(a - 1) * b} + ${b} = ${c}.`;
+}
+
+// Arma las 8 preguntas de un nivel: 6 cuentas + 2 preguntas para saber más.
+function armarPreguntas(nivel) {
+  const cuentas = [];
+  while (cuentas.length < PREGUNTAS_POR_NIVEL - 2) {
+    const q = nivel.crear();
+    if (!cuentas.some(c => c.cuenta === q.cuenta && c.enunciado === q.enunciado)) cuentas.push({ ...q, tipo: 'cuenta' });
+  }
+  const banco = nivel.saber.flatMap(tema => SABER[tema]);
+  const teoria = mezclar(banco).slice(0, 2).map(s => ({ tipo: 'saber', texto: s.p, opciones: mezclar(s.r), respuesta: s.r[0], explicacion: s.dato }));
+  cuentas.splice(2, 0, teoria[0]);     // en la pregunta 3
+  cuentas.splice(6, 0, teoria[1]);     // y en la pregunta 7
+  return cuentas;
+}
+
+
+/* ---------- 9. PANTALLAS: INICIO, MAPA Y LECCIÓN ---------- */
+function mostrarPantalla(id) {
+  if (id !== 'resultado' && id !== 'final') pararFestejo();   // el festejo no sigue en otras pantallas
+  document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+  document.getElementById(id).classList.add('activa');
+  window.scrollTo(0, 0);
+  if (id === 'mapa') dibujarMapa();
+  if (id === 'inicio' || id === 'mapa') document.body.style.background = '';
+}
+
+function saludar() {
+  sonar('racha');
+  document.getElementById('globo-inicio').textContent = alAzar([
+    '¡Miau! ¿Sabías que 2 + 2 = 4? ¡Y 2 × 2 también!', '¡Me encantan los números!',
+    '¡Prrr! Practicar todos los días te hace un genio.', '¿Cuántas patas tienen 2 gatos? ¡8! 🐾',
+  ]);
+  explosionDesde(document.getElementById('profe-inicio'), 25);
+}
+
+function irAlMapa() {
+  sonar('boton');
+  progreso.nombre = document.getElementById('nombre').value.trim();
+  guardar();
+  mostrarPantalla('mapa');
+}
+
+function dibujarMapa() {
+  document.getElementById('saludo-mapa').textContent = progreso.nombre ? `¡Hola, ${progreso.nombre}!` : 'Elegí un nivel';
+  document.getElementById('total-estrellas').textContent = `⭐ ${totalEstrellas()} / ${NIVELES.length * 3}`;
+  const contenedor = document.getElementById('mundos');
+  contenedor.innerHTML = '';
+  const siguiente = progreso.estrellas.findIndex(e => e === 0);
+  MUNDOS.forEach((mundo, m) => {
+    const caja = document.createElement('div');
+    const primero = NIVELES.findIndex(n => n.mundo === m);
+    caja.className = 'mundo' + (nivelAbierto(primero) ? '' : ' bloqueado');
+    caja.style.background = mundo.fondo;
+    caja.innerHTML = `<h3>${mundo.emoji} ${mundo.nombre}</h3><div class="niveles"></div>`;
+    NIVELES.forEach((nivel, i) => {
+      if (nivel.mundo !== m) return;
+      const abierto = nivelAbierto(i);
+      const boton = document.createElement('button');
+      boton.className = 'boton-nivel' + (abierto ? '' : ' cerrado') + (i === siguiente ? ' siguiente' : '');
+      boton.style.setProperty('--color', mundo.color);
+      boton.innerHTML = `
+        <span class="numero">${abierto ? i + 1 : '🔒'}</span>
+        <span class="nombre">${nivel.emoji} ${nivel.nombre}</span>
+        <span class="estrellas">${estrellasHtml(progreso.estrellas[i])}</span>
+        ${i === siguiente ? `<span class="aca">${profeMishi()}</span>` : ''}`;
+      boton.onclick = () => {
+        if (abierto) { sonar('boton'); abrirLeccion(i); }
+        else { sonar('mal'); sacudir(boton); }
+      };
+      caja.querySelector('.niveles').append(boton);
+    });
+    contenedor.append(caja);
+  });
+}
+
+function estrellasHtml(cantidad) {
+  let html = '';
+  for (let i = 0; i < 3; i++) html += `<span class="${i < cantidad ? '' : 'apagada'}">⭐</span>`;
+  return html;
+}
+
+// Pinta la pantalla con los colores del mundo del nivel.
+function usarColoresDelMundo(nivel) {
+  const mundo = MUNDOS[nivel.mundo];
+  document.documentElement.style.setProperty('--mundo', mundo.color);
+  document.documentElement.style.setProperty('--mundo-claro', mundo.claro);
+  document.body.style.background = mundo.fondo;
+}
+
+function abrirLeccion(n) {
+  juego.nivel = n;
+  const nivel = NIVELES[n];
+  usarColoresDelMundo(nivel);
+  document.getElementById('leccion-emoji').textContent = nivel.emoji;
+  document.getElementById('leccion-nivel').textContent = `Nivel ${n + 1} · ${nivel.nombre}`;
+  document.getElementById('leccion-titulo').textContent = nivel.leccion.titulo;
+  document.getElementById('leccion-texto').textContent = nivel.leccion.texto;
+  document.getElementById('leccion-ejemplo').textContent = nivel.leccion.ejemplo;
+  document.getElementById('leccion-nota').textContent =
+    `${PREGUNTAS_POR_NIVEL} preguntas · Necesitás ${PARA_PASAR} bien para pasar · ` +
+    (nivel.modo === 'teclado' ? '✍️ Escribís la respuesta' : '👆 Elegís la respuesta');
+  mostrarPantalla('leccion');
+}
+
+
+/* ---------- 10. EL JUEGO: MOSTRAR, RESPONDER, SIGUIENTE ---------- */
+const juego = { nivel: 0, preguntas: [], indice: 0, correctas: 0, racha: 0, resultados: [], escrito: '', respondida: false };
+const FRASES_BIEN = ['¡Muy bien!', '¡Genial!', '¡Excelente!', '¡Sos un genio!', '¡Bárbaro!', '¡Impecable!', '¡Matemágico! ✨'];
+const FRASES_MAL = ['¡Casi! Mirá cómo se hace.', 'No pasa nada, ¡así se aprende!', '¡Ups! Fijate en la explicación.'];
+const FRASES_PENSAR = ['¡Vos podés!', 'Pensá con calma… 🤔', 'Contá con los dedos si querés.', '¡Dale, que sale!'];
+
+function empezarNivel() {
+  sonar('boton');
+  const nivel = NIVELES[juego.nivel];
+  Object.assign(juego, { preguntas: armarPreguntas(nivel), indice: 0, correctas: 0, racha: 0, resultados: [] });
+  document.getElementById('juego-nivel').textContent = `Nivel ${juego.nivel + 1} · ${nivel.nombre}`;
+  document.getElementById('racha').classList.add('oculto');
+  mostrarPantalla('juego');
+  mostrarPregunta();
+}
+
+function salirDelNivel() { sonar('boton'); mostrarPantalla('mapa'); }
+
+function decir(texto, cara = 'feliz') {
+  document.getElementById('globo-juego').textContent = texto;
+  document.getElementById('profe-juego').innerHTML = profeMishi(cara);
+}
+
+function dibujarPuntitos() {
+  document.getElementById('puntitos').innerHTML = juego.preguntas.map((_, i) => {
+    const r = juego.resultados[i];
+    return `<span class="${r === true ? 'bien' : r === false ? 'mal' : i === juego.indice ? 'actual' : ''}"></span>`;
+  }).join('');
+}
+
+function mostrarPregunta() {
+  const q = juego.preguntas[juego.indice], nivel = NIVELES[juego.nivel];
+  juego.respondida = false;
+  juego.escrito = '';
+  dibujarPuntitos();
+  decir(q.tipo === 'saber' ? '¡Pregunta para saber más! 📚' : alAzar(FRASES_PENSAR));
+
+  const enunciado = document.getElementById('enunciado'), dibujo = document.getElementById('dibujo');
+  enunciado.textContent = q.enunciado || '';
+  enunciado.classList.toggle('oculto', !q.enunciado);
+  dibujo.innerHTML = q.dibujo || '';
+  dibujo.classList.toggle('oculto', !q.dibujo);
+  document.getElementById('respuesta-info').classList.add('oculto');
+
+  const cuenta = document.getElementById('cuenta'), respuestas = document.getElementById('respuestas');
+  if (q.tipo === 'saber') {
+    cuenta.innerHTML = `<p class="texto-saber"></p>`;
+    cuenta.firstChild.textContent = q.texto;
+    respuestas.innerHTML = `<div class="opciones">${q.opciones.map(o => `<button class="opcion texto"></button>`).join('')}</div>`;
+    respuestas.querySelectorAll('.opcion').forEach((b, i) => { b.textContent = q.opciones[i]; b.onclick = () => responder(q.opciones[i], b); });
+  } else if (nivel.modo === 'opciones') {
+    cuenta.innerHTML = cuentaHtml(q, '?');
+    const opciones = opcionesNumericas(q.respuesta, q.parecidas);
+    respuestas.innerHTML = `<div class="opciones">${opciones.map(o => `<button class="opcion">${o}</button>`).join('')}</div>`;
+    respuestas.querySelectorAll('.opcion').forEach((b, i) => b.onclick = () => responder(opciones[i], b));
+  } else {
+    cuenta.innerHTML = cuentaHtml(q, '&nbsp;');
+    respuestas.innerHTML = `<div class="teclado">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="tecla" data-tecla="${n}">${n}</button>`).join('')}
+      <button class="tecla borrar" data-tecla="borrar">⌫</button><button class="tecla" data-tecla="0">0</button>
+      <button class="tecla listo" data-tecla="listo">✔</button></div>`;
+    respuestas.querySelectorAll('.tecla').forEach(b => b.onclick = () => tocarTecla(b.dataset.tecla));
+  }
+  const tarjeta = document.getElementById('tarjeta-pregunta');
+  tarjeta.classList.remove('saltito'); void tarjeta.offsetWidth; tarjeta.classList.add('saltito');
+}
+
+// La cuenta grande: "7 + 5 = ?" (los signos van en color)
+function cuentaHtml(q, enLaCajita) {
+  if (!q.cuenta.match(/[+−×]/)) return `<p class="cuenta"><span class="cajita" id="cajita">${enLaCajita}</span></p>`;
+  const partes = q.cuenta.replace(/([+−×])/g, '<span class="signo">$1</span>');
+  return `<p class="cuenta">${partes} <span class="signo">=</span> <span class="cajita" id="cajita">${enLaCajita}</span></p>`;
+}
+
+function tocarTecla(tecla) {
+  if (juego.respondida) return;
+  sonar('boton');
+  if (tecla === 'borrar') juego.escrito = juego.escrito.slice(0, -1);
+  else if (tecla === 'listo') {
+    if (juego.escrito === '') { sacudir(document.getElementById('cajita')); decir('Primero escribí un número. 😉'); return; }
+    responder(Number(juego.escrito), document.getElementById('cajita'));
+    return;
+  } else if (juego.escrito.length < 3) juego.escrito += tecla;
+  document.getElementById('cajita').innerHTML = juego.escrito || '&nbsp;';
+}
+
+function responder(valor, elemento) {
+  if (juego.respondida) return;
+  juego.respondida = true;
+  const q = juego.preguntas[juego.indice], acerto = valor === q.respuesta;
+  juego.resultados[juego.indice] = acerto;
+  dibujarPuntitos();
+
+  // Marcamos las opciones: la correcta en verde, las demás en gris.
+  document.querySelectorAll('#respuestas .opcion').forEach(b => {
+    b.disabled = true;
+    const texto = b.textContent;
+    if (texto === String(q.respuesta)) b.classList.add('correcta');
+    else if (b === elemento) b.classList.add('incorrecta');
+  });
+  document.querySelectorAll('#respuestas .tecla').forEach(b => b.disabled = true);
+  if (q.tipo === 'cuenta') document.getElementById('cajita').textContent = acerto ? valor : q.respuesta;
+
+  const info = document.getElementById('respuesta-info');
+  info.className = 'respuesta-info ' + (acerto ? 'bien' : 'mal');
+  if (acerto) {
+    juego.correctas++;
+    juego.racha++;
+    const frase = alAzar(FRASES_BIEN) + (progreso.nombre && Math.random() < 0.4 ? ` ¡Bien, ${progreso.nombre}!` : '');
+    decir(frase, 'contenta');
+    sonar(juego.racha % 3 === 0 ? 'racha' : 'bien');
+    explosionDesde(elemento, juego.racha % 3 === 0 ? 70 : 35);
+    if (juego.racha >= 3) {
+      const racha = document.getElementById('racha');
+      racha.textContent = `🔥 ${juego.racha} seguidas`;
+      racha.classList.remove('oculto');
+      if (juego.racha % 3 === 0) decir(juego.racha >= 6 ? '¡Imparable! 🔥🔥🔥' : `¡Racha de ${juego.racha}! 🔥`, 'contenta');
+    }
+    info.innerHTML = `<b>✅ ¡Correcto!</b>`;
+  } else {
+    juego.racha = 0;
+    document.getElementById('racha').classList.add('oculto');
+    decir(alAzar(FRASES_MAL));
+    sonar('mal');
+    sacudir(document.getElementById('tarjeta-pregunta'));
+    info.innerHTML = `<b>La respuesta correcta es: <span></span></b>`;
+    info.querySelector('span').textContent = q.respuesta;
+  }
+  // Explicación: siempre en las de teoría, y en las cuentas cuando te equivocás.
+  if (!acerto || q.tipo === 'saber') {
+    const exp = document.createElement('p');
+    exp.className = 'explicacion';
+    exp.textContent = '💡 ' + q.explicacion;
+    info.append(exp);
+  }
+  const ultima = juego.indice === juego.preguntas.length - 1;
+  const boton = document.createElement('button');
+  boton.className = 'boton verde';
+  boton.textContent = ultima ? 'Ver resultado 🏁' : 'Siguiente ➜';
+  boton.onclick = siguiente;
+  info.append(boton);
+  info.classList.remove('oculto');
+  // Si acertaste una cuenta, pasamos solos a la siguiente después de un ratito.
+  if (acerto && q.tipo === 'cuenta' && !ultima) {
+    const esta = juego.indice;
+    setTimeout(() => { if (juego.indice === esta && juego.respondida && document.getElementById('juego').classList.contains('activa')) siguiente(); }, 1400);
+  }
+}
+
+function siguiente() {
+  sonar('boton');
+  juego.indice++;
+  if (juego.indice < juego.preguntas.length) mostrarPregunta();
+  else terminarNivel();
+}
+
+function sacudir(elemento) {
+  elemento.classList.remove('sacudir'); void elemento.offsetWidth; elemento.classList.add('sacudir');
+}
+
+// Teclado de la computadora: números, borrar y Enter
+addEventListener('keydown', e => {
+  if (!document.getElementById('juego').classList.contains('activa')) return;
+  if (juego.respondida) { if (e.key === 'Enter') siguiente(); return; }
+  if (NIVELES[juego.nivel].modo !== 'teclado' || juego.preguntas[juego.indice].tipo === 'saber') return;
+  if (/^[0-9]$/.test(e.key)) tocarTecla(e.key);
+  if (e.key === 'Backspace') tocarTecla('borrar');
+  if (e.key === 'Enter') tocarTecla('listo');
+});
+
+
+/* ---------- 11. FIN DEL NIVEL Y DIPLOMA ---------- */
+function terminarNivel() {
+  const n = juego.nivel, paso = juego.correctas >= PARA_PASAR;
+  const estrellas = juego.correctas === 8 ? 3 : juego.correctas === 7 ? 2 : paso ? 1 : 0;
+  const mundoAntes = NIVELES.filter((_, i) => nivelAbierto(i)).map(x => x.mundo).pop();
+  progreso.estrellas[n] = Math.max(progreso.estrellas[n], estrellas);
+  guardar();
+
+  document.getElementById('profe-resultado').innerHTML = profeMishi(paso ? 'contenta' : 'feliz');
+  document.getElementById('resultado-titulo').textContent = paso ? '¡Nivel superado!' : '¡Casi lo lográs!';
+  document.getElementById('resultado-estrellas').innerHTML = estrellasHtml(estrellas);
+  document.querySelectorAll('#resultado-estrellas span').forEach((s, i) => s.style.animationDelay = (0.6 + i * 0.35) + 's');
+  document.getElementById('resultado-texto').textContent = paso
+    ? `Respondiste bien ${juego.correctas} de ${PREGUNTAS_POR_NIVEL} preguntas.`
+    : `Respondiste bien ${juego.correctas} de ${PREGUNTAS_POR_NIVEL}. Necesitás ${PARA_PASAR} para pasar. ¡Vos podés, intentalo de nuevo!`;
+
+  // ¿Se abrió un mundo nuevo?
+  const nuevo = document.getElementById('nuevo-mundo');
+  const siguienteNivel = NIVELES[n + 1];
+  const abreMundo = paso && siguienteNivel && siguienteNivel.mundo !== NIVELES[n].mundo && siguienteNivel.mundo > mundoAntes;
+  nuevo.classList.toggle('oculto', !abreMundo);
+  if (abreMundo) nuevo.textContent = `🔓 ¡Desbloqueaste el ${MUNDOS[siguienteNivel.mundo].nombre}!`;
+
+  const botones = document.getElementById('resultado-botones');
+  botones.innerHTML = '';
+  const agregar = (texto, clase, accion) => {
+    const b = document.createElement('button'); b.className = 'boton ' + clase; b.textContent = texto; b.onclick = accion; botones.append(b);
+  };
+  if (paso && n === NIVELES.length - 1) agregar('🎓 Ver mi diploma', 'amarillo', mostrarDiploma);
+  else if (paso) agregar('Siguiente nivel ➜', 'verde', () => abrirLeccion(n + 1));
+  agregar('🔁 ' + (paso ? 'Repetir' : 'Intentar de nuevo'), paso ? 'celeste chico' : 'naranja', () => abrirLeccion(n));
+  agregar('🗺️ Mapa', 'blanco chico', () => mostrarPantalla('mapa'));
+  mostrarPantalla('resultado');
+
+  if (paso) {
+    sonar('nivel');
+    lluvia(4);
+    festejar(['¡Felicitaciones!', progreso.nombre ? `¡Sos un genio, ${progreso.nombre}!` : '¡Sos un genio!', '¡Pasaste de nivel!']);
+  } else {
+    sonar('mal');
+  }
+}
+
+function mostrarDiploma() {
+  sonar('nivel');
+  document.getElementById('diploma-nombre').textContent = progreso.nombre || 'un genio de las matemáticas';
+  document.getElementById('diploma-estrellas').textContent = `Con ${totalEstrellas()} de ${NIVELES.length * 3} estrellas ⭐`;
+  document.getElementById('diploma-fecha').textContent = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.body.style.background = '';
+  mostrarPantalla('final');
+  lluvia(3);
+  festejar(['¡Felicitaciones!', '¡Sos un campeón de las matemáticas!', '🏆']);
+}
+
+
+/* ---------- 12. ARRANQUE ---------- */
+// Título con letras de colores que rebotan
+document.getElementById('titulo').innerHTML = [...'Matemágica'].map((letra, i) =>
+  `<span style="color:${COLORES[i % COLORES.length]};animation-delay:${i * 0.1}s">${letra}</span>`).join('');
+// Números y signos flotando en el fondo
+document.getElementById('decoracion').innerHTML = ['1', '+', '2', '×', '3', '−', '5', '=', '7', '+', '9', '×'].map((s, i) =>
+  `<span style="left:${(i * 37) % 95}%;top:${(i * 53) % 90}%;font-size:${2 + (i % 3)}rem;animation-delay:${-i}s">${s}</span>`).join('');
+for (const id of ['profe-inicio', 'profe-final']) document.getElementById(id).innerHTML = profeMishi(id === 'profe-final' ? 'contenta' : 'feliz');
+document.getElementById('nombre').value = progreso.nombre;
+document.getElementById('nombre').addEventListener('keydown', e => { if (e.key === 'Enter') irAlMapa(); });
+pintarBotonSonido();
+ajustarLienzo();
+</script>
+</body>
+</html>
