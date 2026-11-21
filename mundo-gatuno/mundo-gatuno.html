@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mundo Gatuno</title>
+<!-- Letra redondita de Google Fonts. Si no hay internet, se usa otra parecida. -->
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   MUNDO GATUNO · ESTILOS (cómo se ve el juego)
+   1. Colores y base
+   2. Pantallas, tarjetas y botones
+   3. Menú, tutorial y selección de niveles
+   4. Pantalla de juego (barra, Mishi, tablero, flechas)
+   5. Estilos de cada desafío
+   6. Victoria, volver a intentar y final
+   7. Animaciones
+   ===================================================================== */
+
+/* ---------- 1. Colores y base ---------- */
+:root {
+  --texto: #5a3e5d;
+  --crema: #fffdf8;
+  --rosa: #ff7fb6;     --rosa-borde: #d9558f;
+  --celeste: #4fb6f0;  --celeste-borde: #2b8bc6;
+  --menta: #3fc98c;    --menta-borde: #2a9a68;
+  --amarillo: #ffcf3d; --amarillo-borde: #d9a600;
+  --lila: #a786f5;     --lila-borde: #7d5ad6;
+  --sombra: 0 6px 0 rgba(90, 62, 93, .15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Fredoka', 'Baloo 2', 'Comic Sans MS', system-ui, sans-serif;
+  color: var(--texto);
+  background: #fff4fa;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+  overflow-x: hidden;
+}
+button { font-family: inherit; color: inherit; cursor: pointer; border: none; touch-action: manipulation; }
+h2 { font-size: 1.7rem; }
+.oculto { display: none !important; }
+
+/* ---------- 2. Pantallas, tarjetas y botones ---------- */
+.pantalla {
+  display: none;                      /* todas escondidas...            */
+  min-height: 100vh;
+  padding: 16px;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.pantalla.activa { display: flex; }   /* ...menos la que está activa    */
+
+.tarjeta {
+  background: var(--crema);
+  border-radius: 28px;
+  padding: 22px;
+  width: 100%; max-width: 470px;
+  box-shadow: 0 10px 0 rgba(90, 62, 93, .12);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  position: relative; z-index: 1;
+}
+
+.boton {
+  font-size: 1.2rem; font-weight: 600;
+  padding: 13px 26px; border-radius: 999px;
+  min-width: 210px;
+  color: #fff; background: var(--rosa);
+  box-shadow: 0 5px 0 var(--rosa-borde);
+  transition: transform .08s;
+}
+.boton:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--rosa-borde); }
+.boton.celeste  { background: var(--celeste);  box-shadow: 0 5px 0 var(--celeste-borde); }
+.boton.menta    { background: var(--menta);    box-shadow: 0 5px 0 var(--menta-borde); }
+.boton.lila     { background: var(--lila);     box-shadow: 0 5px 0 var(--lila-borde); }
+.boton.amarillo { background: var(--amarillo); box-shadow: 0 5px 0 var(--amarillo-borde); color: #6b4a00; }
+.boton.chico    { font-size: 1rem; padding: 10px 18px; min-width: 0; }
+.fila-botones { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+.columna-botones { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+
+.chip {
+  background: #fff; border-radius: 999px; padding: 6px 12px;
+  font-weight: 600; box-shadow: 0 3px 0 rgba(90, 62, 93, .12); white-space: nowrap;
+}
+
+/* Globo de diálogo de Mishi */
+.globo {
+  background: #fff; border-radius: 20px; padding: 10px 16px;
+  box-shadow: var(--sombra); font-size: 1.05rem; position: relative; max-width: 340px;
+}
+.globo::before {                      /* la "colita" del globo */
+  content: ''; position: absolute; top: -10px; left: 50%; margin-left: -10px;
+  border: 10px solid transparent; border-top: 0; border-bottom-color: #fff;
+}
+
+/* Dibujos de gatitos */
+.gato { width: 100%; height: 100%; display: block; overflow: visible; }
+.mishi-grande { width: clamp(130px, 38vw, 190px); aspect-ratio: 1; animation: respirar 2.4s ease-in-out infinite; cursor: pointer; }
+
+/* ---------- 3. Menú, tutorial y selección de niveles ---------- */
+.fondo-menu {
+  background:
+    radial-gradient(circle at 15% 20%, #ffd9ec 0, transparent 35%),
+    radial-gradient(circle at 85% 25%, #d4efff 0, transparent 35%),
+    radial-gradient(circle at 50% 95%, #fff0c2 0, transparent 40%),
+    #fff6fb;
+}
+.titulo {
+  font-size: clamp(2.8rem, 11vw, 4.6rem); font-weight: 700; line-height: .95;
+  color: var(--rosa); letter-spacing: 1px;
+  text-shadow: 0 4px 0 #fff, 0 8px 0 rgba(90, 62, 93, .12);
+}
+.titulo span { color: #ff9b42; display: block; }
+.subtitulo { font-size: 1.2rem; font-weight: 500; }
+.resumen { font-weight: 600; opacity: .8; }
+
+/* Patitas que flotan de fondo */
+.patitas span { position: absolute; font-size: 2rem; opacity: .18; animation: flotar 7s ease-in-out infinite; pointer-events: none; }
+/* Gatitos que espían desde las esquinas del menú */
+.espia { position: absolute; width: 110px; bottom: -30px; pointer-events: none; }
+.espia.izq { left: -18px; transform: rotate(14deg); }
+.espia.der { right: -18px; transform: rotate(-14deg); }
+
+.tuto-dibujo { width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+.tuto-teclas span { display: inline-block; background: #fff; border-radius: 12px; padding: 4px 10px; margin: 2px; box-shadow: 0 4px 0 #e6cfe0; font-size: 1.8rem; }
+.puntitos { display: flex; gap: 8px; }
+.puntitos span { width: 10px; height: 10px; border-radius: 50%; background: #e6d3ea; }
+.puntitos span.activo { background: var(--rosa); }
+
+.cabecera { width: 100%; max-width: 900px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+#niveles { justify-content: flex-start; background: linear-gradient(180deg, #fff0f7, #eef7ff); }
+.grilla-niveles {
+  width: 100%; max-width: 900px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px;
+}
+.tarjeta-nivel {
+  position: relative; border-radius: 22px; padding: 16px 8px 12px; min-height: 150px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  box-shadow: var(--sombra); transition: transform .12s;
+}
+.tarjeta-nivel:active { transform: scale(.96); }
+.tarjeta-nivel .num {
+  position: absolute; top: 8px; left: 8px; width: 28px; height: 28px; border-radius: 50%;
+  background: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; color: var(--texto);
+}
+.tarjeta-nivel .emoji { font-size: 2.6rem; line-height: 1.1; }
+.tarjeta-nivel .nombre { font-weight: 600; font-size: .98rem; line-height: 1.15; }
+.tarjeta-nivel.oscura .nombre { color: #fff; }
+.tarjeta-nivel.bloqueada { filter: grayscale(.9); opacity: .55; }
+.tarjeta-nivel .aqui { position: absolute; top: -16px; right: -8px; width: 50px; animation: respirar 1.6s ease-in-out infinite; }
+
+.estrellas { font-size: 1.1rem; letter-spacing: 2px; }
+.apagada { filter: grayscale(1); opacity: .3; }
+
+/* ---------- 4. Pantalla de juego ---------- */
+#juego { justify-content: flex-start; gap: 10px; padding: 10px 12px 18px; }
+.barra, .ayuda { width: 100%; max-width: 760px; display: flex; align-items: center; gap: 8px; }
+.barra { flex-wrap: wrap; }
+.boton-salir { width: 42px; height: 42px; border-radius: 50%; background: #fff; font-size: 1.2rem; box-shadow: 0 3px 0 rgba(90, 62, 93, .15); flex: none; }
+.nombre-nivel {
+  flex: 1; min-width: 160px; text-align: left; font-weight: 600;
+  background: #fff; border-radius: 999px; padding: 9px 14px; box-shadow: 0 3px 0 rgba(90, 62, 93, .12);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chip.apurado { background: #ffd0d0; animation: latido .5s infinite; }
+.mishi-mini { width: 54px; height: 54px; flex: none; }
+.ayuda .globo { flex: 1; text-align: left; font-size: .98rem; padding: 8px 12px; max-width: none; }
+.ayuda .globo::before { top: 50%; left: -10px; margin: -10px 0 0; border: 10px solid transparent; border-left: 0; border-right-color: #fff; }
+
+.area { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; padding: 4px 0; }
+.espera { font-size: 6rem; animation: respirar 2s infinite; }
+
+/* Tablero de cuadritos (niveles donde Mishi camina) */
+.tablero {
+  --celda: min(64px, calc((100vw - 48px) / var(--cols)), calc((100vh - 330px) / var(--filas)));
+  display: grid; grid-template-columns: repeat(var(--cols), var(--celda)); gap: 3px;
+  padding: 8px; border-radius: 18px; background: rgba(255, 255, 255, .6); box-shadow: var(--sombra);
+}
+.celda {
+  width: var(--celda); height: var(--celda); border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: calc(var(--celda) * .62); line-height: 1;
+}
+.celda .mishi-celda { width: 100%; height: 100%; animation: saltito .25s; }
+.girar { display: inline-block; transform: scaleX(-1); }   /* da vuelta un dibujo (autos que van a la derecha) */
+.jardin .celda   { background: #b6eaa8; }
+.jardin .arbusto { background: #8fd68a; }
+.ciudad .calle   { background: #9c98b3; }
+.ciudad .vereda  { background: #f5dccf; }
+.ciudad .meta    { background: #c4e9ff; }
+.playa .cielo    { background: rgba(255, 255, 255, .45); }
+.playa .arena    { background: #ffe3a3; }
+.espacio         { background: rgba(255, 255, 255, .12); }
+.espacio .celda  { background: rgba(255, 255, 255, .1); }
+.espacio .roca   { background: #8f7be0; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .2); }
+
+/* Flechas en pantalla (para celular) */
+.flechas { display: flex; gap: 10px; justify-content: center; }
+.flechas button {
+  width: 64px; height: 58px; border-radius: 18px; font-size: 1.5rem;
+  background: #fff; box-shadow: 0 5px 0 #e3c8de;
+}
+.flechas button:active { transform: translateY(4px); box-shadow: 0 1px 0 #e3c8de; }
+.flechas.ocultas { display: none; }
+.flechas.lados .vertical { display: none; }
+
+/* Capa con las instrucciones del nivel */
+.capa {
+  position: fixed; inset: 0; z-index: 10; padding: 16px;
+  background: rgba(90, 62, 93, .35);
+  display: none; align-items: center; justify-content: center;
+}
+.capa.visible { display: flex; }
+.intro-dibujos { display: flex; align-items: center; gap: 6px; }
+.intro-dibujos .mishi-mini { width: 90px; height: 90px; }
+.intro-emoji { font-size: 3.6rem; }
+.etiqueta { font-weight: 700; color: var(--rosa); letter-spacing: 1px; text-transform: uppercase; font-size: .9rem; }
+.pista { font-size: .95rem; background: #f3ecff; border-radius: 14px; padding: 8px 12px; }
+
+/* ---------- 5. Estilos de cada desafío ---------- */
+/* Nivel 2: encontrar objetos */
+.casa { width: min(560px, 100%); }
+.lista-buscar { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+.buscar { font-size: 1.8rem; background: #fff; border-radius: 14px; padding: 4px 9px; box-shadow: 0 3px 0 rgba(90, 62, 93, .12); position: relative; }
+.buscar.listo { background: #c3f3d6; }
+.buscar.listo::after { content: '✔'; position: absolute; right: -4px; top: -8px; font-size: 1rem; color: var(--menta-borde); }
+.habitacion {
+  position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 22px; overflow: hidden; box-shadow: var(--sombra);
+  background:
+    linear-gradient(180deg, transparent 60%, #f0c39a 60%),
+    repeating-linear-gradient(90deg, #ffe4ee 0 24px, #ffd6e5 24px 48px);
+}
+.ventana { position: absolute; left: 7%; top: 7%; width: 22%; height: 26%; border: 6px solid #fff; border-radius: 10px; background: linear-gradient(#bfe8ff, #eaf8ff); }
+.alfombra { position: absolute; left: 28%; bottom: 5%; width: 44%; height: 15%; border-radius: 50%; background: #cdb8ff; }
+.objeto {
+  position: absolute; background: none; line-height: 1;
+  transform: translate(-50%, -50%); transition: transform .2s, opacity .4s;
+}
+.objeto.encontrado { transform: translate(-50%, -50%) scale(1.6); opacity: 0; pointer-events: none; }
+
+/* Nivel 3: memoria */
+.memoria {
+  --carta: min(110px, calc((100vw - 70px) / 4), calc((100vh - 320px) / 3));
+  display: grid; grid-template-columns: repeat(4, var(--carta)); gap: 10px;
+}
+.carta { width: var(--carta); height: var(--carta); position: relative; background: none; perspective: 600px; }
+.carta .cara {
+  position: absolute; inset: 0; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center; font-size: calc(var(--carta) * .5);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transition: transform .35s; box-shadow: 0 4px 0 rgba(90, 62, 93, .18);
+}
+.carta .tapa   { background: linear-gradient(135deg, #b9a0f5, #7fd6bd); }
+.carta .dibujo { background: var(--crema); transform: rotateY(180deg); }
+.carta.abierta .tapa   { transform: rotateY(180deg); }
+.carta.abierta .dibujo { transform: rotateY(0); }
+.carta.pareja .dibujo  { background: #d3f7e2; }
+
+/* Nivel 6: preguntas */
+.quiz { background: var(--crema); border-radius: 24px; padding: 18px; width: 100%; max-width: 520px; box-shadow: var(--sombra); }
+.fantasma { font-size: 3rem; animation: flotar 3s ease-in-out infinite; }
+.pregunta { font-size: 1.25rem; font-weight: 600; margin: 6px 0 10px; }
+.opcion {
+  display: block; width: 100%; margin: 9px 0; padding: 12px; border-radius: 16px;
+  background: #f1eaff; font-size: 1.05rem; box-shadow: 0 4px 0 #d8ccf4;
+}
+.opcion.correcta   { background: #bff2d3; box-shadow: 0 4px 0 #8fd9ad; }
+.opcion.incorrecta { background: #ffcaca; box-shadow: 0 4px 0 #f0a0a0; }
+.dato { min-height: 1.2em; margin: 8px 0; font-size: .98rem; }
+
+/* Nivel 8: rompecabezas */
+.puzzle-zona { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.puzzle {
+  --pieza: min(130px, calc((100vw - 60px) / 3), calc((100vh - 360px) / 3));
+  display: grid; grid-template-columns: repeat(3, var(--pieza)); gap: 4px;
+  padding: 6px; background: #fff; border-radius: 18px; box-shadow: var(--sombra);
+}
+.pieza {
+  width: var(--pieza); height: var(--pieza); border-radius: 8px;
+  background-image: var(--imagen); background-size: 300% 300%; transition: transform .15s;
+}
+.pieza.bien    { box-shadow: inset 0 0 0 3px rgba(63, 201, 140, .7); }
+.pieza.elegida { outline: 4px solid var(--rosa); transform: scale(.92); }
+.modelo { background: #fff; border-radius: 16px; padding: 8px; font-size: .85rem; box-shadow: var(--sombra); }
+.modelo img { width: 96px; display: block; border-radius: 10px; margin-top: 4px; }
+
+/* Nivel 9: diferencias */
+.labs { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.lab { background: #fff; border-radius: 20px; padding: 8px 10px 10px; box-shadow: var(--sombra); }
+.lab-nombre { font-weight: 600; margin-bottom: 4px; }
+.lab-grilla { --c: min(62px, calc((100vw - 76px) / 5)); display: grid; grid-template-columns: repeat(5, var(--c)); gap: 4px; }
+.lab-celda { width: var(--c); height: var(--c); font-size: calc(var(--c) * .58); background: #eef5ff; border-radius: 10px; }
+.lab-celda.hallada { background: #c3f3d6; outline: 3px solid var(--menta); }
+
+/* Nivel 10: la canción mágica */
+.simon { --g: min(180px, calc((100vw - 60px) / 2), calc((100vh - 330px) / 2)); display: grid; grid-template-columns: repeat(2, var(--g)); gap: 14px; }
+.gatito-magico {
+  width: var(--g); height: var(--g); border-radius: 28px; background: var(--color);
+  box-shadow: 0 6px 0 rgba(90, 62, 93, .18);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-weight: 600; transition: transform .15s, filter .15s;
+}
+.gatito-magico svg { width: 68%; height: auto; }
+.gatito-magico.brilla { transform: scale(1.08); filter: brightness(1.12) drop-shadow(0 0 16px #fff); }
+
+/* ---------- 6. Victoria, volver a intentar y final ---------- */
+.fondo-victoria { background: radial-gradient(circle at 50% 30%, #fff6c9, #ffe0f0 60%, #e1f2ff); }
+.fondo-derrota  { background: linear-gradient(180deg, #e7f0ff, #f6ecff); }
+.fondo-final    { background: linear-gradient(160deg, #ffd6ec, #fff3c4 40%, #d4f6e6 70%, #d6ecff); }
+.estrellas-grandes span { font-size: 3.2rem; display: inline-block; animation: aparecer .5s backwards; }
+.puntos-grandes { font-size: 1.3rem; font-weight: 600; }
+.mensaje { font-size: 1.05rem; }
+.confeti { position: absolute; top: -50px; pointer-events: none; animation: caer linear infinite; }
+
+/* ---------- 7. Animaciones ---------- */
+@keyframes respirar { 50% { transform: translateY(-6px) scale(1.02); } }
+@keyframes flotar   { 50% { transform: translateY(-14px) rotate(8deg); } }
+@keyframes saltito  { 50% { transform: translateY(-5px); } }
+@keyframes latido   { 50% { transform: scale(1.08); } }
+@keyframes aparecer { from { transform: scale(0) rotate(-90deg); opacity: 0; } }
+@keyframes caer     { to { transform: translateY(110vh) rotate(360deg); } }
+@keyframes sacudir  { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@keyframes rebote   { 50% { transform: scale(1.05); } }
+.sacudir { animation: sacudir .3s; }
+.rebote  { animation: rebote .3s; }
+@keyframes sacudirObjeto {
+  25% { transform: translate(-50%, -50%) rotate(-15deg); }
+  75% { transform: translate(-50%, -50%) rotate(15deg); }
+}
+.objeto.sacudir { animation: sacudirObjeto .3s; }
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     PANTALLAS DEL JUEGO
+     Cada <section class="pantalla"> es una pantalla. Solo se ve la que
+     tiene la clase "activa".
+     ===================================================================== -->
+
+<!-- 1. MENÚ DE INICIO -->
+<section id="menu" class="pantalla fondo-menu activa">
+  <div class="patitas">
+    <span style="left:6%;top:10%">🐾</span><span style="left:82%;top:8%;animation-delay:-2s">🐾</span>
+    <span style="left:12%;top:62%;animation-delay:-4s">🐾</span><span style="left:88%;top:55%;animation-delay:-1s">🐾</span>
+    <span style="left:45%;top:4%;animation-delay:-3s">🐾</span><span style="left:70%;top:80%;animation-delay:-5s">🐾</span>
+  </div>
+  <div class="espia izq" id="espia-izq"></div>
+  <div class="espia der" id="espia-der"></div>
+
+  <h1 class="titulo">Mundo <span>Gatuno</span></h1>
+  <p class="subtitulo">¡10 aventuras llenas de gatitos!</p>
+  <div class="mishi-grande" id="mishi-menu" onclick="acariciarMishi()" title="¡Acaríciame!"></div>
+  <div class="globo" id="globo-menu">¡Hola! Soy Mishi. ¿Me acompañas?</div>
+  <div class="columna-botones">
+    <button class="boton" onclick="botonComenzar()">▶ Comenzar</button>
+    <div class="fila-botones">
+      <button class="boton celeste chico" onclick="abrirTutorial()">📖 Cómo jugar</button>
+      <button class="boton amarillo chico" id="boton-sonido" onclick="cambiarSonido()">🔊 Sonido</button>
+    </div>
+  </div>
+  <p class="resumen" id="resumen-menu"></p>
+</section>
+
+<!-- 2. TUTORIAL -->
+<section id="tutorial" class="pantalla fondo-menu">
+  <div class="tarjeta">
+    <div class="tuto-dibujo" id="tuto-dibujo"></div>
+    <h2 id="tuto-titulo"></h2>
+    <p id="tuto-texto"></p>
+    <div class="puntitos" id="tuto-puntitos"></div>
+    <div class="fila-botones">
+      <button class="boton celeste chico" id="tuto-atras" onclick="pasoTutorial(-1)">⬅ Atrás</button>
+      <button class="boton chico" id="tuto-siguiente" onclick="pasoTutorial(1)">Siguiente ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3. SELECCIÓN DE NIVELES -->
+<section id="niveles" class="pantalla">
+  <div class="cabecera">
+    <button class="boton celeste chico" onclick="mostrarPantalla('menu')">🏠 Menú</button>
+    <h2>Elige un nivel</h2>
+    <span class="chip" id="resumen-niveles"></span>
+  </div>
+  <div class="grilla-niveles" id="grilla-niveles"></div>
+</section>
+
+<!-- 4. PANTALLA DE JUEGO -->
+<section id="juego" class="pantalla">
+  <div class="barra">
+    <button class="boton-salir" onclick="salirDelNivel()" title="Salir">✖</button>
+    <div class="nombre-nivel" id="hud-nivel"></div>
+    <span class="chip" id="hud-puntos"></span>
+    <span class="chip" id="hud-vidas"></span>
+    <span class="chip" id="hud-tiempo"></span>
+  </div>
+  <div class="ayuda">
+    <div class="mishi-mini" id="mishi-juego"></div>
+    <div class="globo" id="globo-juego"></div>
+    <span class="chip" id="hud-progreso"></span>
+  </div>
+
+  <!-- Aquí se dibuja el desafío de cada nivel -->
+  <div class="area" id="area"></div>
+
+  <!-- Flechas para jugar en el celular -->
+  <div class="flechas ocultas" id="flechas">
+    <button onclick="mover(-1, 0)">◀</button>
+    <button class="vertical" onclick="mover(0, -1)">▲</button>
+    <button class="vertical" onclick="mover(0, 1)">▼</button>
+    <button onclick="mover(1, 0)">▶</button>
+  </div>
+
+  <!-- Instrucciones que aparecen antes de cada nivel -->
+  <div class="capa" id="intro">
+    <div class="tarjeta">
+      <div class="intro-dibujos"><div class="mishi-mini" id="intro-mishi"></div><div class="intro-emoji" id="intro-emoji"></div></div>
+      <p class="etiqueta" id="intro-nivel"></p>
+      <h2 id="intro-titulo"></h2>
+      <p id="intro-texto"></p>
+      <p class="pista" id="intro-controles"></p>
+      <button class="boton" onclick="comenzarDesafio()">¡A jugar! 🐾</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5. VICTORIA -->
+<section id="victoria" class="pantalla fondo-victoria">
+  <div class="tarjeta">
+    <div class="mishi-grande" id="mishi-victoria"></div>
+    <h2>¡Nivel superado!</h2>
+    <div class="estrellas-grandes" id="vic-estrellas"></div>
+    <p class="puntos-grandes" id="vic-puntos"></p>
+    <p class="mensaje" id="vic-mensaje"></p>
+    <div class="fila-botones">
+      <button class="boton menta" onclick="siguienteNivel()">Siguiente nivel ➜</button>
+      <button class="boton celeste chico" onclick="reintentar()">🔁 Repetir</button>
+      <button class="boton amarillo chico" onclick="mostrarPantalla('niveles')">🗺️ Niveles</button>
+    </div>
+  </div>
+</section>
+
+<!-- 6. VOLVER A INTENTAR -->
+<section id="derrota" class="pantalla fondo-derrota">
+  <div class="tarjeta">
+    <div class="mishi-grande" id="mishi-derrota"></div>
+    <h2>¡Oh, no!</h2>
+    <p class="puntos-grandes" id="der-motivo"></p>
+    <p class="mensaje" id="der-mensaje"></p>
+    <div class="fila-botones">
+      <button class="boton" onclick="reintentar()">🔁 Intentar de nuevo</button>
+      <button class="boton amarillo chico" onclick="mostrarPantalla('niveles')">🗺️ Niveles</button>
+    </div>
+  </div>
+</section>
+
+<!-- 7. FINAL (los 10 niveles completos) -->
+<section id="final" class="pantalla fondo-final">
+  <div id="confeti"></div>
+  <div class="tarjeta">
+    <div class="mishi-grande" id="mishi-final"></div>
+    <h2>¡Completaste Mundo Gatuno!</h2>
+    <p class="mensaje">Mishi recorrió los 10 mundos gracias a ti. ¡Eres el mejor amigo que un gatito puede tener! 💖</p>
+    <p class="puntos-grandes" id="fin-estrellas"></p>
+    <p class="puntos-grandes" id="fin-puntos"></p>
+    <p class="mensaje" id="fin-consejo"></p>
+    <div class="fila-botones">
+      <button class="boton menta" onclick="mostrarPantalla('niveles')">🗺️ Ver niveles</button>
+      <button class="boton celeste chico" onclick="mostrarPantalla('menu')">🏠 Menú</button>
+    </div>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   MUNDO GATUNO · CÓDIGO DEL JUEGO
+   1. Los 10 niveles (datos)
+   2. Progreso guardado (estrellas y puntos)
+   3. Sonidos
+   4. Dibujo de Mishi y sus amigos
+   5. Mensajes divertidos y ayudas
+   6. Cambiar de pantalla: menú, tutorial y niveles
+   7. Funciones comunes de todos los niveles
+   8. Tableros de cuadritos (para los niveles donde Mishi camina)
+   9. Los 10 desafíos
+   10. Arranque
+   ===================================================================== */
+
+
+/* ---------- 1. LOS 10 NIVELES ----------
+   Para cambiar un nivel, edita su texto aquí.
+   "iniciar" es la función que arma el desafío (están en la sección 9). */
+const NIVELES = [
+  { nombre: 'El jardín de los gatos', emoji: '🌷', fondo: 'linear-gradient(180deg, #d9f7cf, #fff7d1)',
+    desafio: 'Recoge las monedas',
+    ayuda: 'Mueve a Mishi por el jardín y junta las 6 monedas 🪙. Los arbustos 🌳 no se pueden atravesar.',
+    controles: 'Usa las flechas del teclado o los botones ◀ ▲ ▼ ▶.',
+    flechas: 'todas', iniciar: nivelJardin },
+
+  { nombre: 'La casa de los gatitos', emoji: '🏠', fondo: 'linear-gradient(180deg, #ffe3ef, #fff3e0)',
+    desafio: 'Encuentra los juguetes',
+    ayuda: 'Mishi perdió sus cosas. Busca en la casa los 5 objetos de la lista y tócalos.',
+    controles: 'Toca o haz clic sobre los objetos.',
+    flechas: null, iniciar: nivelCasa },
+
+  { nombre: 'El bosque mágico', emoji: '🍄', fondo: 'linear-gradient(180deg, #d8f3e6, #e7dcff)',
+    desafio: 'Memoria mágica',
+    ayuda: 'Da vuelta las cartas de a dos y encuentra las 6 parejas iguales. ¡Intenta recordar dónde está cada una!',
+    controles: 'Toca las cartas para darlas vuelta.',
+    flechas: null, iniciar: nivelBosque },
+
+  { nombre: 'La ciudad gatuna', emoji: '🏙️', fondo: 'linear-gradient(180deg, #dfe8ff, #fde6ff)',
+    desafio: 'Cruza la calle',
+    ayuda: 'Lleva a Mishi hasta la vereda de los pescados 🐟 sin que lo toque ningún auto. Hay que llegar 2 veces. Tienes 3 vidas.',
+    controles: 'Usa las flechas del teclado o los botones ◀ ▲ ▼ ▶.',
+    flechas: 'todas', iniciar: nivelCiudad },
+
+  { nombre: 'La playa de los gatos', emoji: '🏖️', fondo: 'linear-gradient(180deg, #bfe9ff, #fff1c4)',
+    desafio: 'Atrapa los pescados',
+    ayuda: 'Atrapa 12 pescados 🐟 que caen del cielo. Esquiva las gotas 💧: ¡a los gatos no les gusta mojarse! Tienes 3 vidas.',
+    controles: 'Mueve a Mishi con ◀ ▶ (o las flechas del teclado).',
+    flechas: 'lados', iniciar: nivelPlaya },
+
+  { nombre: 'El castillo misterioso', emoji: '🏰', fondo: 'linear-gradient(180deg, #e2d8ff, #ffd9ec)',
+    desafio: 'Las preguntas del fantasma',
+    ayuda: 'Un fantasma muy amable te hará 6 preguntas sobre gatos. Necesitas al menos 4 respuestas correctas.',
+    controles: 'Toca la respuesta que creas correcta.',
+    flechas: null, iniciar: nivelCastillo },
+
+  { nombre: 'La aventura espacial', emoji: '🚀', fondo: 'linear-gradient(180deg, #2b2d5c, #6b4fa8)', oscuro: true,
+    desafio: 'Laberinto de estrellas',
+    ayuda: 'Junta las 3 estrellas ⭐ del laberinto y después sube al cohete 🚀. ¡Tienes 60 segundos!',
+    controles: 'Usa las flechas del teclado o los botones ◀ ▲ ▼ ▶.',
+    flechas: 'todas', iniciar: nivelEspacio },
+
+  { nombre: 'La montaña de nieve', emoji: '🏔️', fondo: 'linear-gradient(180deg, #e4f5ff, #ffffff)',
+    desafio: 'Rompecabezas helado',
+    ayuda: 'La foto de Mishi en la nieve se desarmó. Cambia las piezas de lugar hasta armarla. Tienes 2 minutos.',
+    controles: 'Toca una pieza y después otra para intercambiarlas.',
+    flechas: null, iniciar: nivelMontana },
+
+  { nombre: 'El laboratorio de los gatos', emoji: '🧪', fondo: 'linear-gradient(180deg, #d6fff3, #e6ebff)',
+    desafio: 'Encuentra las diferencias',
+    ayuda: 'Los dos laboratorios parecen iguales, pero hay 5 diferencias. Encuéntralas antes de que se acabe el tiempo.',
+    controles: 'Toca los cuadritos que cambiaron (en cualquiera de los dos).',
+    flechas: null, iniciar: nivelLaboratorio },
+
+  { nombre: 'El mundo mágico de los gatitos', emoji: '🌈', fondo: 'linear-gradient(180deg, #ffd6ec, #d6efff 55%, #fff3c4)',
+    desafio: 'La canción mágica',
+    ayuda: 'Cuatro gatitos mágicos cantan una canción. Mira y escucha el orden, y después tócalos igual. ¡Cada ronda es más larga!',
+    controles: 'Toca a los gatitos en el mismo orden. Tienes 3 vidas.',
+    flechas: null, iniciar: nivelMagico },
+];
+
+
+/* ---------- 2. PROGRESO GUARDADO ----------
+   Se guarda en el navegador (localStorage), así no se pierde al cerrar. */
+const progreso = cargarProgreso();
+
+function cargarProgreso() {
+  const nuevo = { estrellas: [0,0,0,0,0,0,0,0,0,0], puntos: [0,0,0,0,0,0,0,0,0,0], tutorialVisto: false, sonido: true };
+  try {
+    const guardado = JSON.parse(localStorage.getItem('mundoGatuno'));
+    if (guardado && guardado.estrellas) return Object.assign(nuevo, guardado);
+  } catch (error) { /* si el navegador no deja guardar, empezamos de cero */ }
+  return nuevo;
+}
+
+function guardarProgreso() {
+  try { localStorage.setItem('mundoGatuno', JSON.stringify(progreso)); } catch (error) {}
+}
+
+function totalEstrellas() { return progreso.estrellas.reduce((suma, n) => suma + n, 0); }
+function totalPuntos()    { return progreso.puntos.reduce((suma, n) => suma + n, 0); }
+
+// Un nivel está abierto si es el primero o si ya ganaste el anterior.
+function nivelDesbloqueado(n) { return n === 0 || progreso.estrellas[n - 1] > 0; }
+
+
+/* ---------- 3. SONIDOS ----------
+   No usamos archivos de audio: el navegador "fabrica" los sonidos. */
+let audio = null;
+
+function prepararAudio() {
+  if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+  if (audio.state === 'suspended') audio.resume();
+}
+
+// Toca una nota: frecuencia (agudo/grave), cuándo empieza, cuánto dura.
+function tono(frecuencia, inicio, duracion, tipo = 'triangle', volumen = 0.18) {
+  const oscilador = audio.createOscillator();
+  const ganancia = audio.createGain();
+  const t = audio.currentTime + inicio;
+  oscilador.type = tipo;
+  oscilador.frequency.value = frecuencia;
+  ganancia.gain.setValueAtTime(0.0001, t);
+  ganancia.gain.exponentialRampToValueAtTime(volumen, t + 0.02);
+  ganancia.gain.exponentialRampToValueAtTime(0.0001, t + duracion);
+  oscilador.connect(ganancia).connect(audio.destination);
+  oscilador.start(t);
+  oscilador.stop(t + duracion + 0.05);
+  return oscilador;
+}
+
+// Cada sonido es una lista de notas: [frecuencia, inicio, duración, tipo, volumen]
+const SONIDOS = {
+  boton:    [[660, 0, .08]],
+  moneda:   [[988, 0, .08], [1319, .07, .16]],
+  bien:     [[660, 0, .1], [880, .1, .18]],
+  mal:      [[220, 0, .25, 'square', .06]],
+  golpe:    [[130, 0, .14, 'square', .07]],
+  victoria: [[523, 0, .15], [659, .15, .15], [784, .3, .15], [1047, .45, .45]],
+  perder:   [[392, 0, .25], [330, .25, .25], [262, .5, .5]],
+};
+
+function sonar(nombre) {
+  if (!progreso.sonido) return;
+  try {
+    prepararAudio();
+    if (nombre === 'miau') return maullar();
+    SONIDOS[nombre].forEach(n => tono(n[0], n[1], n[2], n[3], n[4]));
+  } catch (error) { /* si el navegador no tiene sonido, seguimos jugando igual */ }
+}
+
+function maullar() {
+  const oscilador = tono(520, 0, .55, 'triangle', .22);
+  const t = audio.currentTime;
+  oscilador.frequency.setValueAtTime(520, t);
+  oscilador.frequency.linearRampToValueAtTime(880, t + .15);   // "miiii..."
+  oscilador.frequency.linearRampToValueAtTime(420, t + .55);   // "...auuu"
+}
+
+function nota(frecuencia) {
+  if (!progreso.sonido) return;
+  try { prepararAudio(); tono(frecuencia, 0, .4, 'sine', .25); } catch (error) {}
+}
+
+function cambiarSonido() {
+  progreso.sonido = !progreso.sonido;
+  guardarProgreso();
+  actualizarBotonSonido();
+  sonar('boton');
+}
+
+function actualizarBotonSonido() {
+  document.getElementById('boton-sonido').textContent = progreso.sonido ? '🔊 Sonido: sí' : '🔇 Sonido: no';
+}
+
+
+/* ---------- 4. DIBUJO DE MISHI Y SUS AMIGOS ----------
+   Los gatitos se dibujan con SVG (formas: círculos, óvalos y líneas).
+   Opciones: color, rayas, cara ('feliz', 'contento', 'triste') y
+   extra ('bufanda', 'corona', 'casco'). Sin opciones, dibuja a Mishi. */
+function dibujoGato(opciones = {}) {
+  return `<svg class="gato" viewBox="0 0 100 100" aria-hidden="true">${partesGato(opciones)}</svg>`;
+}
+
+function partesGato(opciones = {}) {
+  const color = opciones.color || '#ffb26b';   // Mishi es naranja
+  const rayas = opciones.rayas || '#f08a3c';
+  const cara  = opciones.cara  || 'feliz';
+  const borde = '#6b4a3a';
+  const linea = `stroke="${borde}" stroke-width="2.2" stroke-linejoin="round"`;
+
+  let ojos;
+  if (cara === 'contento') {          // ojitos cerrados: ^ ^
+    ojos = `<path d="M32 46 Q38 39 44 46 M56 46 Q62 39 68 46" fill="none" stroke="${borde}" stroke-width="3" stroke-linecap="round"/>`;
+  } else if (cara === 'triste') {     // ojos caídos y una lagrimita
+    ojos = `<ellipse cx="38" cy="46" rx="5" ry="6" fill="#3b2b3f"/><ellipse cx="62" cy="46" rx="5" ry="6" fill="#3b2b3f"/>
+            <path d="M30 39 L43 35 M70 39 L57 35" stroke="${borde}" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M33 53 Q30 59 33 61 Q36 59 33 53 Z" fill="#7cc8f7"/>`;
+  } else {                            // ojos grandes y brillantes
+    ojos = `<ellipse cx="38" cy="45" rx="5.8" ry="7.2" fill="#3b2b3f"/><ellipse cx="62" cy="45" rx="5.8" ry="7.2" fill="#3b2b3f"/>
+            <circle cx="40" cy="42" r="2.3" fill="#fff"/><circle cx="64" cy="42" r="2.3" fill="#fff"/>`;
+  }
+  const boca = cara === 'triste'
+    ? `<path d="M44 63 Q50 58 56 63" fill="none" stroke="${borde}" stroke-width="2" stroke-linecap="round"/>`
+    : `<path d="M50 57 Q47 62 43 59.5 M50 57 Q53 62 57 59.5" fill="none" stroke="${borde}" stroke-width="2" stroke-linecap="round"/>`;
+
+  const extras = {
+    bufanda: `<path d="M27 68 Q50 80 73 68 L74 76 Q50 88 26 76 Z" fill="#ff6f8e" ${linea}/>
+              <path d="M60 77 L65 93 L56 93 L54 79 Z" fill="#ff6f8e" ${linea}/>`,
+    corona:  `<path d="M35 22 L36 5 L44 14 L50 2 L56 14 L64 5 L65 22 Z" fill="#ffd34d" stroke="#c99a00" stroke-width="2" stroke-linejoin="round"/>
+              <circle cx="50" cy="13" r="2.6" fill="#ff5d9e"/>`,
+    casco:   `<circle cx="50" cy="52" r="47" fill="rgba(190,225,255,.22)" stroke="#e8f5ff" stroke-width="3"/>
+              <path d="M22 34 Q30 16 48 12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/>`,
+  };
+
+  return `
+    <path d="M73 82 Q97 78 90 55" fill="none" stroke="${borde}" stroke-width="10" stroke-linecap="round"/>
+    <path d="M73 82 Q97 78 90 55" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="50" cy="80" rx="25" ry="16" fill="${color}" ${linea}/>
+    <ellipse cx="50" cy="85" rx="12" ry="8" fill="#fff6ea"/>
+    <ellipse cx="38" cy="94" rx="7" ry="4.5" fill="${color}" ${linea}/>
+    <ellipse cx="62" cy="94" rx="7" ry="4.5" fill="${color}" ${linea}/>
+    <path d="M20 34 L24 6 L46 22 Z" fill="${color}" ${linea}/>
+    <path d="M80 34 L76 6 L54 22 Z" fill="${color}" ${linea}/>
+    <path d="M26 27 L28 14 L38 22 Z" fill="#ffb3c7"/>
+    <path d="M74 27 L72 14 L62 22 Z" fill="#ffb3c7"/>
+    <ellipse cx="50" cy="46" rx="33" ry="27" fill="${color}" ${linea}/>
+    <path d="M44 21 L46 29 M50 20 L50 29 M56 21 L54 29" stroke="${rayas}" stroke-width="3" stroke-linecap="round"/>
+    ${ojos}
+    <ellipse cx="28" cy="56" rx="6" ry="3.5" fill="#ff8fb1" opacity=".55"/>
+    <ellipse cx="72" cy="56" rx="6" ry="3.5" fill="#ff8fb1" opacity=".55"/>
+    <path d="M46.5 53 H53.5 L50 56.5 Z" fill="#ff7aa2" stroke="#ff7aa2" stroke-width="1.5" stroke-linejoin="round"/>
+    ${boca}
+    <path d="M21 52 L7 49 M21 56 L7 59 M79 52 L93 49 M79 56 L93 59" stroke="${borde}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+    ${extras[opciones.extra] || ''}`;
+}
+
+
+/* ---------- 5. MENSAJES DIVERTIDOS Y AYUDAS ---------- */
+const FRASES_INICIO   = ['¡Vamos, tú puedes! 🐾', '¡Miau! Esto va a ser divertido.', '¡Bigotes listos!', '¡A la aventura!'];
+const FRASES_BIEN     = ['¡Miau-ravilloso!', '¡Gatástico!', '¡Bien hecho!', '¡Qué buena patita!', '¡Ronroneo de felicidad!'];
+const FRASES_VICTORIA = [
+  '¡Eres un gatito estrella! 🌟',
+  '¡Miau-ravilloso! Mishi está ronroneando de felicidad.',
+  '¡Gatástico! Te ganaste una caricia en la panza.',
+  '¡Bigotes de campeón! Sigamos la aventura.',
+  '¡Excelente! Mishi te invita a una lata de atún imaginaria. 🐟',
+];
+const FRASES_DERROTA = [
+  'Los gatos siempre caen de pie... ¡y tú también! Inténtalo otra vez.',
+  '¡No pasa nada! Mishi también se tropieza con su propia cola.',
+  'Dicen que los gatos tienen siete vidas. ¡Tú tienes intentos infinitos!',
+  'Respira hondo, estírate como un gato y vuelve a intentarlo. 🐈',
+];
+const FRASES_CARICIA = ['¡Prrrr! 💕', '¡Miau! Me encantan los mimos.', '¿Jugamos? 🧶', '¡Hola, amigo humano!', 'Tengo hambre de aventuras... y de atún. 🐟'];
+
+// Elige un elemento al azar de una lista.
+function alAzar(lista) { return lista[Math.floor(Math.random() * lista.length)]; }
+
+// Devuelve una copia de la lista, mezclada como un mazo de cartas.
+function mezclar(lista) {
+  const copia = [...lista];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
+// Estrellas como texto: ganadas a color y las que faltan en gris.
+function textoEstrellas(cantidad) {
+  let html = '';
+  for (let i = 0; i < 3; i++) html += `<span class="${i < cantidad ? '' : 'apagada'}">⭐</span>`;
+  return html;
+}
+
+
+/* ---------- 6. CAMBIAR DE PANTALLA: MENÚ, TUTORIAL Y NIVELES ---------- */
+function mostrarPantalla(id) {
+  if (id !== 'juego') pararTodo();
+  document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+  document.getElementById(id).classList.add('activa');
+  window.scrollTo(0, 0);
+  if (id === 'menu') actualizarMenu();
+  if (id === 'niveles') dibujarNiveles();
+}
+
+function actualizarMenu() {
+  document.getElementById('resumen-menu').textContent = `⭐ ${totalEstrellas()} de 30 · 🪙 ${totalPuntos()} puntos`;
+}
+
+function acariciarMishi() {
+  sonar('miau');
+  document.getElementById('globo-menu').textContent = alAzar(FRASES_CARICIA);
+}
+
+function botonComenzar() {
+  sonar('miau');
+  if (progreso.tutorialVisto) mostrarPantalla('niveles');
+  else abrirTutorial();
+}
+
+// --- Tutorial: 4 pasos ---
+const TUTORIAL = [
+  { dibujo: () => dibujoGato(), titulo: '¡Hola, soy Mishi!',
+    texto: 'Soy un gatito muy curioso y quiero recorrer el Mundo Gatuno. ¿Me ayudas? Juntos vamos a superar 10 niveles.' },
+  { dibujo: () => '🗺️🔒', titulo: 'Elige un nivel',
+    texto: 'Empieza por el nivel 1. Cuando lo superes, se abre el siguiente. Cada nivel tiene un lugar y un desafío diferente.' },
+  { dibujo: () => '<div class="tuto-teclas"><span>◀</span><span>▲</span><span>▼</span><span>▶</span></div>', titulo: 'Cómo se juega',
+    texto: 'En algunos niveles mueves a Mishi con las flechas del teclado o con los botones de la pantalla. En otros solo tienes que tocar. Antes de cada nivel te explico qué hacer.' },
+  { dibujo: () => '⭐⭐⭐', titulo: 'Gana estrellas y puntos',
+    texto: 'Cuanto mejor juegues, más estrellas ganas: ¡hasta 3 por nivel! Si pierdes, no pasa nada: puedes intentarlo otra vez.' },
+];
+let pasoActual = 0;
+
+function abrirTutorial() {
+  sonar('boton');
+  pasoActual = 0;
+  dibujarTutorial();
+  mostrarPantalla('tutorial');
+}
+
+function pasoTutorial(cambio) {
+  sonar('boton');
+  pasoActual += cambio;
+  if (pasoActual < 0) { mostrarPantalla('menu'); return; }
+  if (pasoActual >= TUTORIAL.length) {
+    progreso.tutorialVisto = true;
+    guardarProgreso();
+    mostrarPantalla('niveles');
+    return;
+  }
+  dibujarTutorial();
+}
+
+function dibujarTutorial() {
+  const paso = TUTORIAL[pasoActual];
+  document.getElementById('tuto-dibujo').innerHTML = paso.dibujo();
+  document.getElementById('tuto-titulo').textContent = paso.titulo;
+  document.getElementById('tuto-texto').textContent = paso.texto;
+  document.getElementById('tuto-puntitos').innerHTML = TUTORIAL.map((p, i) => `<span class="${i === pasoActual ? 'activo' : ''}"></span>`).join('');
+  document.getElementById('tuto-atras').textContent = pasoActual === 0 ? '🏠 Menú' : '⬅ Atrás';
+  document.getElementById('tuto-siguiente').textContent = pasoActual === TUTORIAL.length - 1 ? '¡Entendido! 🐾' : 'Siguiente ➜';
+}
+
+// --- Selección de niveles ---
+function dibujarNiveles() {
+  document.getElementById('resumen-niveles').textContent = `⭐ ${totalEstrellas()}/30 · 🪙 ${totalPuntos()}`;
+  const grilla = document.getElementById('grilla-niveles');
+  grilla.innerHTML = '';
+  // Mishi se sienta sobre el primer nivel abierto que todavía no ganaste.
+  const siguiente = progreso.estrellas.findIndex(e => e === 0);
+
+  NIVELES.forEach((nivel, i) => {
+    const abierto = nivelDesbloqueado(i);
+    const tarjeta = document.createElement('button');
+    tarjeta.className = 'tarjeta-nivel' + (abierto ? '' : ' bloqueada') + (nivel.oscuro ? ' oscura' : '');
+    tarjeta.style.background = nivel.fondo;
+    tarjeta.innerHTML = `
+      <span class="num">${i + 1}</span>
+      <span class="emoji">${abierto ? nivel.emoji : '🔒'}</span>
+      <span class="nombre">${nivel.nombre}</span>
+      <span class="estrellas">${textoEstrellas(progreso.estrellas[i])}</span>
+      ${i === siguiente ? `<span class="aqui">${dibujoGato()}</span>` : ''}`;
+    tarjeta.onclick = () => {
+      if (abierto) { sonar('boton'); empezarNivel(i); }
+      else { sonar('mal'); sacudir(tarjeta); }
+    };
+    grilla.appendChild(tarjeta);
+  });
+}
+
+
+/* ---------- 7. FUNCIONES COMUNES DE TODOS LOS NIVELES ---------- */
+const area = document.getElementById('area');   // donde se dibuja cada desafío
+
+// Todo lo que está pasando en el nivel actual.
+const juego = {
+  nivel: 0,           // número de nivel (0 = nivel 1)
+  puntos: 0,
+  vidas: null,        // null = este nivel no usa vidas
+  vidasMax: 3,
+  tiempo: null,       // null = este nivel no usa reloj
+  activo: false,      // true mientras se está jugando
+  alMover: null,      // qué hacer cuando se aprieta una flecha
+  mishiHtml: '',      // dibujo de Mishi en el tablero
+  relojes: [],        // temporizadores que hay que apagar al salir
+};
+
+function empezarNivel(n, sinInstrucciones) {
+  pararTodo();
+  juego.nivel = n;
+  const nivel = NIVELES[n];
+  const pantalla = document.getElementById('juego');
+  pantalla.style.background = nivel.fondo;
+  document.getElementById('hud-nivel').textContent = `Nivel ${n + 1} · ${nivel.nombre}`;
+  document.getElementById('flechas').className = 'flechas ocultas';
+  area.innerHTML = `<div class="espera">${nivel.emoji}</div>`;
+  juego.puntos = 0; juego.vidas = null; juego.tiempo = null;
+  actualizarBarra();
+  progresoTexto('');
+  decir(alAzar(FRASES_INICIO));
+  mostrarPantalla('juego');
+
+  if (sinInstrucciones) { comenzarDesafio(); return; }
+  document.getElementById('intro-emoji').textContent = nivel.emoji;
+  document.getElementById('intro-nivel').textContent = `Nivel ${n + 1} · ${nivel.nombre}`;
+  document.getElementById('intro-titulo').textContent = nivel.desafio;
+  document.getElementById('intro-texto').textContent = nivel.ayuda;
+  document.getElementById('intro-controles').textContent = '🎮 ' + nivel.controles;
+  document.getElementById('intro').classList.add('visible');
+}
+
+function comenzarDesafio() {
+  document.getElementById('intro').classList.remove('visible');
+  sonar('boton');
+  const nivel = NIVELES[juego.nivel];
+  juego.puntos = 0; juego.vidas = null; juego.tiempo = null;
+  juego.alMover = null;
+  juego.mishiHtml = dibujoGato();
+  juego.activo = true;
+  document.getElementById('flechas').className = 'flechas ' + (nivel.flechas || 'ocultas');
+  nivel.iniciar();          // arma el desafío de este nivel (sección 9)
+  actualizarBarra();
+}
+
+// Apaga los temporizadores y detiene el nivel.
+function pararTodo() {
+  juego.relojes.forEach(id => { clearInterval(id); clearTimeout(id); });
+  juego.relojes = [];
+  juego.activo = false;
+  juego.alMover = null;
+}
+
+// Repite algo cada cierto tiempo / lo hace una vez después de un rato.
+// Usamos estas en vez de setInterval y setTimeout para poder apagarlos al salir.
+function cadaTanto(funcion, milisegundos) { juego.relojes.push(setInterval(funcion, milisegundos)); }
+function despues(funcion, milisegundos)   { juego.relojes.push(setTimeout(funcion, milisegundos)); }
+
+function actualizarBarra() {
+  document.getElementById('hud-puntos').textContent = `🪙 ${juego.puntos}`;
+  const vidas = document.getElementById('hud-vidas');
+  vidas.classList.toggle('oculto', juego.vidas === null);
+  if (juego.vidas !== null) vidas.textContent = '❤️'.repeat(juego.vidas) + '🤍'.repeat(juego.vidasMax - juego.vidas);
+  const reloj = document.getElementById('hud-tiempo');
+  reloj.classList.toggle('oculto', juego.tiempo === null);
+  reloj.classList.toggle('apurado', juego.tiempo !== null && juego.tiempo <= 10);
+  if (juego.tiempo !== null) reloj.textContent = `⏱️ ${juego.tiempo}`;
+}
+
+function progresoTexto(texto) {
+  const chip = document.getElementById('hud-progreso');
+  chip.textContent = texto;
+  chip.classList.toggle('oculto', texto === '');
+}
+
+// Mishi dice algo en su globo.
+function decir(texto) {
+  const globo = document.getElementById('globo-juego');
+  globo.textContent = texto;
+  globo.classList.remove('rebote');
+  void globo.offsetWidth;   // truco para que la animación se repita
+  globo.classList.add('rebote');
+}
+
+function sacudir(elemento) {
+  elemento.classList.remove('sacudir');
+  void elemento.offsetWidth;
+  elemento.classList.add('sacudir');
+}
+
+function sumarPuntos(cantidad) {
+  juego.puntos += cantidad;
+  actualizarBarra();
+}
+
+function ponerVidas(cantidad) {
+  juego.vidas = cantidad;
+  juego.vidasMax = cantidad;
+  actualizarBarra();
+}
+
+// Quita una vida. Devuelve true si todavía quedan vidas.
+function perderVida(motivo) {
+  juego.vidas--;
+  actualizarBarra();
+  sonar('golpe');
+  sacudir(area);
+  if (juego.vidas <= 0) { perder(motivo); return false; }
+  decir(`${motivo} Te quedan ${juego.vidas} ${juego.vidas === 1 ? 'vida' : 'vidas'}.`);
+  return true;
+}
+
+// Cuenta regresiva en segundos. Si llega a 0, se pierde el nivel.
+function ponerReloj(segundos) {
+  juego.tiempo = segundos;
+  actualizarBarra();
+  cadaTanto(() => {
+    juego.tiempo--;
+    actualizarBarra();
+    if (juego.tiempo <= 0) perder('¡Se acabó el tiempo! ⏰');
+  }, 1000);
+}
+
+function ganar(estrellas) {
+  if (!juego.activo) return;
+  pararTodo();
+  const n = juego.nivel;
+  const puntosNivel = juego.puntos + estrellas * 50;   // premio extra por estrellas
+  progreso.estrellas[n] = Math.max(progreso.estrellas[n], estrellas);
+  progreso.puntos[n] = Math.max(progreso.puntos[n], puntosNivel);
+  guardarProgreso();
+  sonar('victoria');
+  decir('¡Lo logramos! 🎉');
+
+  document.getElementById('vic-estrellas').innerHTML = textoEstrellas(estrellas);
+  document.querySelectorAll('#vic-estrellas span').forEach((s, i) => s.style.animationDelay = (0.3 + i * 0.25) + 's');
+  document.getElementById('vic-puntos').textContent = `🪙 ${puntosNivel} puntos`;
+  document.getElementById('vic-mensaje').textContent = alAzar(FRASES_VICTORIA);
+
+  // Al ganar el nivel 10 vamos a la pantalla final.
+  despues(() => n === NIVELES.length - 1 ? mostrarFinal() : mostrarPantalla('victoria'), 900);
+}
+
+function perder(motivo) {
+  if (!juego.activo) return;
+  pararTodo();
+  sonar('perder');
+  decir('¡Ay, no! 🙀');
+  document.getElementById('der-motivo').textContent = motivo;
+  document.getElementById('der-mensaje').textContent = alAzar(FRASES_DERROTA);
+  despues(() => mostrarPantalla('derrota'), 900);
+}
+
+function reintentar()     { empezarNivel(juego.nivel, true); }
+function siguienteNivel() { empezarNivel(juego.nivel + 1); }
+function salirDelNivel()  { sonar('boton'); mostrarPantalla('niveles'); }
+
+function mostrarFinal() {
+  document.getElementById('fin-estrellas').textContent = `⭐ ${totalEstrellas()} de 30 estrellas`;
+  document.getElementById('fin-puntos').textContent = `🪙 ${totalPuntos()} puntos en total`;
+  document.getElementById('fin-consejo').textContent = totalEstrellas() === 30
+    ? '¡Conseguiste TODAS las estrellas! Eres una leyenda gatuna. 👑'
+    : 'Puedes repetir los niveles para conseguir las 30 estrellas. 😼';
+  // Confeti de patitas y estrellas
+  let confeti = '';
+  for (let i = 0; i < 24; i++) {
+    confeti += `<span class="confeti" style="left:${Math.random() * 100}%;font-size:${1.2 + Math.random() * 1.4}rem;
+      animation-duration:${4 + Math.random() * 4}s;animation-delay:${-Math.random() * 6}s">${alAzar(['🐾', '⭐', '🎉', '💖', '🐟'])}</span>`;
+  }
+  document.getElementById('confeti').innerHTML = confeti;
+  mostrarPantalla('final');
+}
+
+
+/* ---------- 8. TABLEROS DE CUADRITOS ----------
+   Los mapas se escriben con letras. Cada letra es un cuadrito.
+   Así es fácil diseñar niveles nuevos: ¡solo cambia las letras! */
+
+// Convierte una lista de textos en una cuadrícula de letras.
+function leerMapa(filas) { return filas.map(fila => fila.split('')); }
+
+// Busca una letra en el mapa y devuelve su posición {x, y}.
+function buscarEnMapa(mapa, letra) {
+  for (let y = 0; y < mapa.length; y++) {
+    const x = mapa[y].indexOf(letra);
+    if (x !== -1) return { x, y };
+  }
+  return null;
+}
+
+function contarEnMapa(mapa, letra) { return mapa.flat().filter(c => c === letra).length; }
+
+// ¿Mishi puede pararse en ese cuadrito? (dentro del mapa y sin pared "#")
+function sePuedePisar(mapa, x, y) {
+  return y >= 0 && y < mapa.length && x >= 0 && x < mapa[0].length && mapa[y][x] !== '#';
+}
+
+// Dibuja el tablero. "queHay" recibe (letra, x, y) y devuelve qué mostrar:
+// un emoji como texto, o { txt: emoji, clase: 'estilo-del-cuadrito' }.
+function dibujarTablero(mapa, queHay, gato, estilo) {
+  let html = '';
+  for (let y = 0; y < mapa.length; y++) {
+    for (let x = 0; x < mapa[0].length; x++) {
+      let cosa = queHay(mapa[y][x], x, y);
+      if (typeof cosa === 'string') cosa = { txt: cosa };
+      const hayGato = gato && gato.x === x && gato.y === y;
+      html += `<div class="celda ${cosa.clase || ''}">${hayGato ? `<div class="mishi-celda">${juego.mishiHtml}</div>` : cosa.txt}</div>`;
+    }
+  }
+  area.innerHTML = `<div class="tablero ${estilo}" style="--cols:${mapa[0].length};--filas:${mapa.length}">${html}</div>`;
+}
+
+// Flechas de la pantalla y del teclado
+function mover(dx, dy) {
+  if (juego.activo && juego.alMover) juego.alMover(dx, dy);
+}
+
+document.addEventListener('keydown', evento => {
+  const teclas = {
+    arrowleft: [-1, 0], arrowright: [1, 0], arrowup: [0, -1], arrowdown: [0, 1],
+    a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1],
+  };
+  const direccion = teclas[evento.key.toLowerCase()];
+  if (direccion && document.getElementById('juego').classList.contains('activa')) {
+    evento.preventDefault();
+    mover(direccion[0], direccion[1]);
+  }
+});
+
+
+/* ---------- 9. LOS 10 DESAFÍOS ---------- */
+
+/* NIVEL 1 · El jardín: recoger monedas
+   M = Mishi · $ = moneda · # = arbusto · . = pasto */
+const MAPA_JARDIN = [
+  'M..#..$',
+  '.#.#.#.',
+  '..$....',
+  '$#.#.#.',
+  '...#..$',
+  '.#$..#.',
+  '...#.$.',
+];
+
+function nivelJardin() {
+  const mapa = leerMapa(MAPA_JARDIN);
+  let gato = buscarEnMapa(mapa, 'M');
+  mapa[gato.y][gato.x] = '.';
+  let faltan = contarEnMapa(mapa, '$');
+  const inicio = Date.now();
+
+  function dibujar() {
+    dibujarTablero(mapa, letra => {
+      if (letra === '#') return { txt: '🌳', clase: 'arbusto' };
+      if (letra === '$') return '🪙';
+      return '';
+    }, gato, 'jardin');
+    progresoTexto(`🪙 Faltan ${faltan}`);
+  }
+
+  juego.alMover = (dx, dy) => {
+    const x = gato.x + dx, y = gato.y + dy;
+    if (!sePuedePisar(mapa, x, y)) { sonar('golpe'); return; }
+    gato = { x, y };
+    if (mapa[y][x] === '$') {
+      mapa[y][x] = '.';
+      faltan--;
+      sumarPuntos(10);
+      sonar('moneda');
+      if (faltan === 3) decir('¡Ya vas por la mitad! 🪙');
+    }
+    dibujar();
+    if (faltan === 0) {
+      const segundos = (Date.now() - inicio) / 1000;
+      ganar(segundos <= 25 ? 3 : segundos <= 45 ? 2 : 1);   // más rápido = más estrellas
+    }
+  };
+  dibujar();
+}
+
+/* NIVEL 2 · La casa: encontrar objetos escondidos */
+function nivelCasa() {
+  const buscar = [
+    { emoji: '🧶', nombre: 'el ovillo' }, { emoji: '🐭', nombre: 'el ratón de juguete' },
+    { emoji: '🐟', nombre: 'el pescado' }, { emoji: '🎀', nombre: 'el moño' }, { emoji: '🥣', nombre: 'el platito' },
+  ];
+  const otros = ['🧸', '👟', '🎈', '🍎', '🔑', '🧦', '🎁', '☂️', '📚', '🕰️', '🪴', '💡', '🧺', '🖍️', '🍪'];
+  let encontrados = 0, errores = 0;
+
+  // Mezclamos todo y lo repartimos en una cuadrícula invisible de 5 x 4 lugares.
+  const todos = mezclar([
+    ...buscar.map((o, i) => ({ emoji: o.emoji, objetivo: i })),
+    ...otros.map(e => ({ emoji: e, objetivo: -1 })),
+  ]);
+  let objetos = '';
+  todos.forEach((o, i) => {
+    const x = 10 + (i % 5) * 20 + (Math.random() * 8 - 4);
+    const y = 14 + Math.floor(i / 5) * 24 + (Math.random() * 8 - 4);
+    const tamano = 1.5 + Math.random() * 0.9;
+    objetos += `<button class="objeto" style="left:${x}%;top:${y}%;font-size:${tamano}rem" data-objetivo="${o.objetivo}">${o.emoji}</button>`;
+  });
+  area.innerHTML = `
+    <div class="casa">
+      <div class="lista-buscar">${buscar.map((o, i) => `<span class="buscar" id="buscar-${i}">${o.emoji}</span>`).join('')}</div>
+      <div class="habitacion"><div class="ventana"></div><div class="alfombra"></div>${objetos}</div>
+    </div>`;
+  progresoTexto(`🔎 0/${buscar.length}`);
+
+  area.querySelectorAll('.objeto').forEach(boton => boton.onclick = () => {
+    if (!juego.activo) return;
+    const objetivo = Number(boton.dataset.objetivo);
+    if (objetivo >= 0) {
+      boton.classList.add('encontrado');
+      document.getElementById('buscar-' + objetivo).classList.add('listo');
+      encontrados++;
+      sumarPuntos(20);
+      sonar('bien');
+      decir(`¡Encontraste ${buscar[objetivo].nombre}! ${buscar[objetivo].emoji}`);
+      progresoTexto(`🔎 ${encontrados}/${buscar.length}`);
+      if (encontrados === buscar.length) ganar(errores === 0 ? 3 : errores <= 2 ? 2 : 1);
+    } else {
+      errores++;
+      sonar('mal');
+      sacudir(boton);
+      decir(alAzar(['Eso no es de Mishi. 🤔', '¡Miau? Eso no está en la lista.', 'Sigue buscando... 👀']));
+    }
+  });
+}
+
+/* NIVEL 3 · El bosque mágico: memoria */
+function nivelBosque() {
+  const dibujos = ['🐟', '🧶', '🐭', '🦋', '🍄', '🌙'];
+  const cartas = mezclar([...dibujos, ...dibujos]);   // cada dibujo aparece 2 veces
+  let abiertas = [], parejas = 0, intentos = 0, esperando = false;
+
+  area.innerHTML = '<div class="memoria">' + cartas.map((d, i) =>
+    `<button class="carta" data-i="${i}"><span class="cara tapa">🐾</span><span class="cara dibujo">${d}</span></button>`
+  ).join('') + '</div>';
+  progresoTexto('💞 Parejas: 0/6');
+
+  area.querySelectorAll('.carta').forEach(carta => carta.onclick = () => {
+    if (!juego.activo || esperando || carta.classList.contains('abierta')) return;
+    carta.classList.add('abierta');
+    sonar('boton');
+    abiertas.push(carta);
+    if (abiertas.length < 2) return;
+
+    intentos++;
+    const [a, b] = abiertas;
+    abiertas = [];
+    if (cartas[a.dataset.i] === cartas[b.dataset.i]) {
+      parejas++;
+      a.classList.add('pareja'); b.classList.add('pareja');
+      sumarPuntos(20);
+      sonar('bien');
+      decir(alAzar(FRASES_BIEN));
+      progresoTexto(`💞 Parejas: ${parejas}/6`);
+      if (parejas === 6) ganar(intentos <= 10 ? 3 : intentos <= 15 ? 2 : 1);
+    } else {
+      esperando = true;   // esperamos un poquito para que se vean las cartas
+      despues(() => { a.classList.remove('abierta'); b.classList.remove('abierta'); esperando = false; }, 800);
+    }
+  });
+}
+
+/* NIVEL 4 · La ciudad: cruzar la calle esquivando autos
+   P = vereda de los pescados (meta) · C = calle · V = vereda · M = Mishi */
+const MAPA_CIUDAD = [
+  'PPPPPPP',
+  'CCCCCCC',
+  'CCCCCCC',
+  'VVVVVVV',
+  'CCCCCCC',
+  'CCCCCCC',
+  'VVVMVVV',
+];
+
+function nivelCiudad() {
+  const mapa = leerMapa(MAPA_CIUDAD);
+  const salida = buscarEnMapa(mapa, 'M');
+  mapa[salida.y][salida.x] = 'V';
+  let gato = { ...salida };
+  let llegadas = 0;
+  let paso = 0;
+  ponerVidas(3);
+
+  // Cada auto tiene posición (x, y), dirección (1 = derecha, -1 = izquierda) y dibujo.
+  const autos = [
+    { x: 0, y: 1, dir: 1, dibujo: '🚕' },  { x: 4, y: 1, dir: 1, dibujo: '🚗' },
+    { x: 2, y: 2, dir: -1, dibujo: '🚌' }, { x: 6, y: 2, dir: -1, dibujo: '🚙' },
+    { x: 1, y: 4, dir: 1, dibujo: '🚙' },  { x: 5, y: 4, dir: 1, dibujo: '🚗' },
+    { x: 0, y: 5, dir: -1, dibujo: '🚚' }, { x: 3, y: 5, dir: -1, dibujo: '🚕' },
+  ];
+  const autoEn = (x, y) => autos.find(a => a.x === x && a.y === y);
+
+  function dibujar() {
+    dibujarTablero(mapa, (letra, x, y) => {
+      const clase = { P: 'meta', C: 'calle', V: 'vereda' }[letra];
+      const auto = autoEn(x, y);
+      // Los dibujos de autos miran a la izquierda: damos vuelta los que van a la derecha.
+      if (auto) return { txt: `<span class="${auto.dir === 1 ? 'girar' : ''}">${auto.dibujo}</span>`, clase };
+      return { txt: letra === 'P' ? '🐟' : '', clase };
+    }, gato, 'ciudad');
+    progresoTexto(`🐟 Llegadas: ${llegadas}/2`);
+  }
+
+  // Si Mishi y un auto están en el mismo cuadrito: pierde una vida y vuelve a empezar.
+  function revisarChoque() {
+    if (!autoEn(gato.x, gato.y)) return false;
+    gato = { ...salida };
+    perderVida('¡Cuidado con los autos! 🚗');
+    return true;
+  }
+
+  juego.alMover = (dx, dy) => {
+    const x = gato.x + dx, y = gato.y + dy;
+    if (!sePuedePisar(mapa, x, y)) return;
+    gato = { x, y };
+    if (!revisarChoque() && mapa[y][x] === 'P') {
+      llegadas++;
+      sumarPuntos(50);
+      sonar('bien');
+      if (llegadas === 2) { dibujar(); ganar(juego.vidas); return; }   // estrellas = vidas que quedan
+      decir('¡Un pescado! 🐟 Vuelve a cruzar por otro.');
+      gato = { ...salida };
+    }
+    dibujar();
+  };
+
+  cadaTanto(() => {
+    paso++;
+    autos.forEach(auto => {
+      const carrilLento = auto.y === 2 || auto.y === 4;   // estos autos avanzan un paso sí y otro no
+      if (carrilLento && paso % 2 === 1) return;
+      auto.x = (auto.x + auto.dir + 7) % 7;               // al salir por un lado, entran por el otro
+    });
+    revisarChoque();
+    if (juego.activo) dibujar();
+  }, 550);
+  dibujar();
+}
+
+/* NIVEL 5 · La playa: atrapar pescados que caen */
+function nivelPlaya() {
+  const COLUMNAS = 5, FILAS = 7, META = 12;
+  const mapa = [];
+  for (let y = 0; y < FILAS; y++) mapa.push(Array(COLUMNAS).fill(y === FILAS - 1 ? 'A' : '.'));  // A = arena
+  let gato = { x: 2, y: FILAS - 1 };
+  let cosas = [];          // lo que va cayendo: { x, y, tipo: 'pez' o 'gota' }
+  let atrapados = 0;
+  ponerVidas(3);
+
+  function dibujar() {
+    dibujarTablero(mapa, (letra, x, y) => {
+      const cosa = cosas.find(c => c.x === x && c.y === y);
+      return { txt: cosa ? (cosa.tipo === 'pez' ? '🐟' : '💧') : '', clase: letra === 'A' ? 'arena' : 'cielo' };
+    }, gato, 'playa');
+    progresoTexto(`🐟 ${atrapados}/${META}`);
+  }
+
+  // Revisa si Mishi tocó algo y borra lo que ya cayó al piso.
+  function revisar() {
+    cosas = cosas.filter(c => {
+      if (c.x === gato.x && c.y === gato.y) {
+        if (c.tipo === 'pez') { atrapados++; sumarPuntos(10); sonar('moneda'); }
+        else perderVida('¡Uy, una gota! Mishi se mojó. 💧');
+        return false;
+      }
+      return c.y < FILAS;
+    });
+    if (atrapados >= META) ganar(juego.vidas);
+  }
+
+  juego.alMover = dx => {
+    const x = gato.x + dx;
+    if (x < 0 || x >= COLUMNAS) return;
+    gato.x = x;
+    revisar();
+    if (juego.activo) dibujar();
+  };
+
+  cadaTanto(() => {
+    cosas.forEach(c => c.y++);                         // todo baja un cuadrito
+    if (Math.random() < 0.55) {                         // a veces aparece algo nuevo arriba
+      cosas.push({ x: Math.floor(Math.random() * COLUMNAS), y: 0, tipo: Math.random() < 0.7 ? 'pez' : 'gota' });
+    }
+    revisar();
+    if (juego.activo) dibujar();
+  }, 520);
+  dibujar();
+}
+
+/* NIVEL 6 · El castillo: preguntas sobre gatos */
+const PREGUNTAS = [
+  { p: '¿Cuántas horas duerme un gato por día, más o menos?', r: ['De 12 a 16 horas', 'Solo 2 horas', 'Nunca duerme'], ok: 0,
+    dato: '¡Los gatos son muy dormilones! Duermen gran parte del día para guardar energía.' },
+  { p: '¿Qué hace un gato cuando está tranquilo y contento?', r: ['Ladra', 'Ronronea', 'Croa'], ok: 1,
+    dato: 'El ronroneo es un sonido suave que hacen muchos gatos cuando están relajados.' },
+  { p: '¿Para qué le sirven los bigotes a un gato?', r: ['Para peinarse', 'Para sentir lo que tiene cerca', 'Para silbar'], ok: 1,
+    dato: 'Los bigotes son muy sensibles: lo ayudan a orientarse y a saber si cabe por un lugar.' },
+  { p: '¿Cuántos dedos tiene un gato en cada pata delantera, normalmente?', r: ['3', '5', '10'], ok: 1,
+    dato: 'Normalmente tienen 5 dedos en cada pata de adelante y 4 en cada pata de atrás.' },
+  { p: '¿Por qué los gatos se lamen tanto?', r: ['Para limpiarse', 'Porque tienen hambre', 'Para cantar'], ok: 0,
+    dato: 'Los gatos pasan mucho tiempo limpiándose: ¡su lengua áspera funciona como un peine!' },
+  { p: 'Según el dicho popular, ¿cuántas vidas tiene un gato?', r: ['Una', 'Siete', 'Cien'], ok: 1,
+    dato: 'En español decimos siete vidas (en inglés dicen nueve). En realidad tienen una sola: ¡hay que cuidarlos!' },
+  { p: '¿En qué país antiguo los gatos eran tan admirados que se los consideraba sagrados?', r: ['Egipto', 'Islandia', 'Australia'], ok: 0,
+    dato: 'En el antiguo Egipto los gatos eran muy queridos. Hasta había una diosa con cara de gata: Bastet.' },
+  { p: '¿Es buena idea darle leche de vaca a un gato adulto?', r: ['Sí, todos los días', 'No, a muchos les cae mal', 'Solo en verano'], ok: 1,
+    dato: 'Muchos gatos adultos no digieren bien la leche. Lo mejor para tomar es agua fresca.' },
+  { p: '¿Por dónde transpiran (sudan) los gatos?', r: ['Por las orejas', 'Por las almohadillas de las patas', 'Por la cola'], ok: 1,
+    dato: 'Los gatos sudan muy poco, y lo hacen sobre todo por las almohadillas de sus patitas.' },
+  { p: '¿Cómo ven los gatos cuando hay poca luz?', r: ['Mucho mejor que las personas', 'No ven nada', 'Solo ven de día'], ok: 0,
+    dato: 'Sus ojos aprovechan muy bien la poca luz: por eso pueden moverse de noche.' },
+];
+
+function nivelCastillo() {
+  const preguntas = mezclar(PREGUNTAS).slice(0, 6);   // 6 preguntas al azar
+  let numero = 0, correctas = 0;
+
+  function mostrarPregunta() {
+    const q = preguntas[numero];
+    progresoTexto(`❓ ${numero + 1}/6 · ✅ ${correctas}`);
+    area.innerHTML = `
+      <div class="quiz">
+        <div class="fantasma">👻</div>
+        <p class="pregunta">${q.p}</p>
+        ${q.r.map((r, i) => `<button class="opcion" data-i="${i}">${r}</button>`).join('')}
+        <p class="dato" id="dato"></p>
+        <button class="boton menta chico oculto" id="siguiente-pregunta">${numero === 5 ? 'Ver resultado ➜' : 'Siguiente ➜'}</button>
+      </div>`;
+    area.querySelectorAll('.opcion').forEach(b => b.onclick = () => responder(Number(b.dataset.i)));
+    document.getElementById('siguiente-pregunta').onclick = () => {
+      sonar('boton');
+      numero++;
+      if (numero < 6) mostrarPregunta(); else terminar();
+    };
+  }
+
+  function responder(elegida) {
+    const q = preguntas[numero];
+    const botones = area.querySelectorAll('.opcion');
+    if (!juego.activo || botones[0].disabled) return;   // ya respondió
+    botones.forEach(b => b.disabled = true);
+    botones[q.ok].classList.add('correcta');
+    if (elegida === q.ok) {
+      correctas++;
+      sumarPuntos(20);
+      sonar('bien');
+      decir(alAzar(FRASES_BIEN));
+    } else {
+      botones[elegida].classList.add('incorrecta');
+      sonar('mal');
+      decir('¡Casi! La correcta está en verde.');
+    }
+    document.getElementById('dato').textContent = '💡 ' + q.dato;
+    document.getElementById('siguiente-pregunta').classList.remove('oculto');
+    progresoTexto(`❓ ${numero + 1}/6 · ✅ ${correctas}`);
+  }
+
+  function terminar() {
+    if (correctas >= 4) ganar(correctas === 6 ? 3 : correctas === 5 ? 2 : 1);
+    else perder(`Acertaste ${correctas} de 6. Necesitas al menos 4. 👻`);
+  }
+
+  mostrarPregunta();
+}
+
+/* NIVEL 7 · El espacio: laberinto con estrellas y reloj
+   M = Mishi · * = estrella · R = cohete · # = roca espacial */
+const MAPA_ESPACIO = [
+  'M..#.....',
+  '.#.#.###.',
+  '.#...#*#.',
+  '.####....',
+  '...*#.#.#',
+  '##.##...#',
+  '*#....#..',
+  '.####.##.',
+  '......#.R',
+];
+
+function nivelEspacio() {
+  const mapa = leerMapa(MAPA_ESPACIO);
+  let gato = buscarEnMapa(mapa, 'M');
+  mapa[gato.y][gato.x] = '.';
+  let faltan = contarEnMapa(mapa, '*');
+  juego.mishiHtml = dibujoGato({ extra: 'casco' });    // ¡Mishi astronauta!
+  ponerReloj(60);
+
+  function dibujar() {
+    dibujarTablero(mapa, letra => {
+      if (letra === '#') return { txt: '', clase: 'roca' };
+      if (letra === '*') return '⭐';
+      if (letra === 'R') return '🚀';
+      return '';
+    }, gato, 'espacio');
+    progresoTexto(`⭐ Faltan ${faltan}`);
+  }
+
+  juego.alMover = (dx, dy) => {
+    const x = gato.x + dx, y = gato.y + dy;
+    if (!sePuedePisar(mapa, x, y)) { sonar('golpe'); return; }
+    gato = { x, y };
+    if (mapa[y][x] === '*') {
+      mapa[y][x] = '.';
+      faltan--;
+      sumarPuntos(20);
+      sonar('moneda');
+      decir(faltan > 0 ? `¡Una estrella! Faltan ${faltan}.` : '¡Todas las estrellas! Ahora, ¡al cohete! 🚀');
+    }
+    dibujar();
+    if (mapa[y][x] === 'R') {
+      if (faltan > 0) { sonar('mal'); decir('¡Primero junta todas las estrellas! ⭐'); return; }
+      sumarPuntos(juego.tiempo);   // segundos que sobraron = puntos extra
+      ganar(juego.tiempo > 30 ? 3 : juego.tiempo > 15 ? 2 : 1);
+    }
+  };
+  dibujar();
+}
+
+/* NIVEL 8 · La montaña: rompecabezas de 9 piezas */
+function nivelMontana() {
+  const imagen = imagenNieve();
+  let piezas = [0, 1, 2, 3, 4, 5, 6, 7, 8];   // piezas[lugar] = qué pedazo de la foto hay ahí
+  do { piezas = mezclar(piezas); } while (piezas.filter((p, i) => p === i).length > 2);
+  let elegida = null, movimientos = 0;
+  ponerReloj(120);
+
+  function dibujar() {
+    area.innerHTML = `
+      <div class="puzzle-zona">
+        <div class="puzzle" style="--imagen:url('${imagen}')">
+          ${piezas.map((p, i) => `<button class="pieza ${p === i ? 'bien' : ''} ${elegida === i ? 'elegida' : ''}" data-i="${i}"
+              style="background-position:${(p % 3) * 50}% ${Math.floor(p / 3) * 50}%"></button>`).join('')}
+        </div>
+        <div class="modelo">Así tiene que quedar:<img src="${imagen}" alt="Mishi en la nieve"></div>
+      </div>`;
+    area.querySelectorAll('.pieza').forEach(b => b.onclick = () => tocar(Number(b.dataset.i)));
+    progresoTexto(`🧩 Movimientos: ${movimientos}`);
+  }
+
+  function tocar(lugar) {
+    if (!juego.activo) return;
+    sonar('boton');
+    if (elegida === null) {
+      elegida = lugar;                       // primera pieza elegida
+    } else if (elegida === lugar) {
+      elegida = null;                        // la tocó dos veces: se deselecciona
+    } else {
+      [piezas[elegida], piezas[lugar]] = [piezas[lugar], piezas[elegida]];   // intercambiar
+      elegida = null;
+      movimientos++;
+    }
+    dibujar();
+    if (piezas.every((p, i) => p === i)) ganar(movimientos <= 8 ? 3 : movimientos <= 12 ? 2 : 1);
+  }
+  dibujar();
+}
+
+// La foto del rompecabezas: Mishi con bufanda en la montaña (dibujada con SVG).
+function imagenNieve() {
+  let copos = '';
+  [[30,30],[110,20],[200,95],[275,130],[20,150],[150,60],[240,240],[60,270],[180,280],[285,30]].forEach(([x, y]) => {
+    copos += `<circle cx="${x}" cy="${y}" r="4" fill="#ffffff" opacity=".9"/>`;
+  });
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+    <defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#e3f4ff"/></linearGradient></defs>
+    <rect width="300" height="300" fill="url(#cielo)"/>
+    <circle cx="248" cy="58" r="30" fill="#ffe27a"/>
+    <path d="M-10 200 L70 70 L120 140 L175 55 L265 185 L310 130 L310 300 L-10 300 Z" fill="#b5c4ea"/>
+    <path d="M70 70 L50 102 L62 96 L72 108 L84 97 L96 104 Z M175 55 L152 92 L166 86 L176 99 L188 89 L201 96 Z" fill="#ffffff"/>
+    <path d="M-10 235 Q80 205 150 228 T310 218 L310 300 L-10 300 Z" fill="#ffffff"/>
+    <path d="M18 250 L36 196 L54 250 Z M30 222 L36 205 L42 222 Z" fill="#4fae86"/>
+    <path d="M240 262 L262 200 L284 262 Z" fill="#4fae86"/>
+    <circle cx="232" cy="262" r="17" fill="#fff" stroke="#c9d8ee" stroke-width="2"/>
+    <circle cx="232" cy="234" r="12" fill="#fff" stroke="#c9d8ee" stroke-width="2"/>
+    <path d="M232 236 l8 2 l-8 2 z" fill="#ff9b42"/>
+    ${copos}
+    <g transform="translate(80 110) scale(1.4)">${partesGato({ extra: 'bufanda' })}</g>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+/* NIVEL 9 · El laboratorio: encontrar las 5 diferencias */
+function nivelLaboratorio() {
+  const cosas = ['🧪', '🔬', '🧫', '💡', '🧲', '🔭', '📏', '🧬', '⚙️', '🔋', '🧯', '📎', '⏰', '🥽', '🧊', '🔍'];
+  const TOTAL = 20;   // 5 columnas x 4 filas
+  const izquierda = [];
+  for (let i = 0; i < TOTAL; i++) izquierda.push(alAzar(cosas));
+  const derecha = [...izquierda];
+  // Elegimos 5 lugares al azar y cambiamos el dibujo en el laboratorio de la derecha.
+  const cambios = mezclar([...Array(TOTAL).keys()]).slice(0, 5);
+  cambios.forEach(i => {
+    let nuevo;
+    do { nuevo = alAzar(cosas); } while (nuevo === izquierda[i]);
+    derecha[i] = nuevo;
+  });
+  const encontradas = [];
+  let errores = 0;
+  ponerReloj(75);
+
+  function panel(lista, nombre) {
+    return `<div class="lab"><p class="lab-nombre">${nombre}</p><div class="lab-grilla">${
+      lista.map((c, i) => `<button class="lab-celda ${encontradas.includes(i) ? 'hallada' : ''}" data-i="${i}">${c}</button>`).join('')
+    }</div></div>`;
+  }
+
+  function dibujar() {
+    area.innerHTML = `<div class="labs">${panel(izquierda, 'Laboratorio A')}${panel(derecha, 'Laboratorio B')}</div>`;
+    area.querySelectorAll('.lab-celda').forEach(b => b.onclick = () => tocar(Number(b.dataset.i), b));
+    progresoTexto(`🔍 ${encontradas.length}/5`);
+  }
+
+  function tocar(i, boton) {
+    if (!juego.activo || encontradas.includes(i)) return;
+    if (cambios.includes(i)) {
+      encontradas.push(i);
+      sumarPuntos(20);
+      sonar('bien');
+      decir(alAzar(FRASES_BIEN));
+      dibujar();
+      if (encontradas.length === 5) ganar(errores === 0 ? 3 : errores <= 2 ? 2 : 1);
+    } else {
+      errores++;
+      sonar('mal');
+      sacudir(boton);
+      decir('Mmm... ahí no hay ninguna diferencia. 🧐');
+    }
+  }
+  dibujar();
+}
+
+/* NIVEL 10 · El mundo mágico: la canción de los gatitos (repetir el orden) */
+function nivelMagico() {
+  const gatitos = [
+    { nombre: 'Rosita', color: '#ffc2dc', rayas: '#ff8fbf', nota: 523 },
+    { nombre: 'Nube',   color: '#bfe6ff', rayas: '#7cc6f2', nota: 659 },
+    { nombre: 'Lila',   color: '#dccbff', rayas: '#b39af0', nota: 784 },
+    { nombre: 'Sol',    color: '#ffe999', rayas: '#f2c94c', nota: 1047 },
+  ];
+  const LARGO_INICIAL = 3, LARGO_FINAL = 7;   // la canción crece de 3 a 7 notas
+  let cancion = [], posicion = 0, turnoDelJugador = false;
+  ponerVidas(3);
+
+  area.innerHTML = '<div class="simon">' + gatitos.map((g, i) =>
+    `<button class="gatito-magico" data-i="${i}" style="--color:${g.color}">${dibujoGato(g)}${g.nombre}</button>`
+  ).join('') + '</div>';
+  const botones = area.querySelectorAll('.gatito-magico');
+
+  function brillar(i) {
+    botones[i].classList.add('brilla');
+    nota(gatitos[i].nota);
+    setTimeout(() => botones[i].classList.remove('brilla'), 380);
+  }
+
+  function tocarCancion() {
+    turnoDelJugador = false;
+    posicion = 0;
+    progresoTexto(`🎵 Ronda ${cancion.length - LARGO_INICIAL + 1} de ${LARGO_FINAL - LARGO_INICIAL + 1}`);
+    decir('¡Mira y escucha con atención! 👀');
+    cancion.forEach((g, k) => despues(() => brillar(g), 700 + k * 650));
+    despues(() => { turnoDelJugador = true; decir('¡Ahora tú! 🎶'); }, 700 + cancion.length * 650);
+  }
+
+  function nuevaRonda() {
+    const notaNueva = () => Math.floor(Math.random() * 4);
+    if (cancion.length === 0) for (let i = 0; i < LARGO_INICIAL; i++) cancion.push(notaNueva());
+    else cancion.push(notaNueva());
+    tocarCancion();
+  }
+
+  botones.forEach(boton => boton.onclick = () => {
+    if (!juego.activo || !turnoDelJugador) return;
+    const i = Number(boton.dataset.i);
+    brillar(i);
+    if (i === cancion[posicion]) {
+      posicion++;
+      sumarPuntos(5);
+      if (posicion === cancion.length) {          // ¡completó la canción!
+        turnoDelJugador = false;
+        sumarPuntos(30);
+        if (cancion.length === LARGO_FINAL) despues(() => ganar(juego.vidas), 500);
+        else { decir(alAzar(FRASES_BIEN)); despues(nuevaRonda, 1100); }
+      }
+    } else {
+      turnoDelJugador = false;
+      if (perderVida('¡Ups, esa nota no era! 🎵')) despues(tocarCancion, 1400);
+    }
+  });
+
+  despues(nuevaRonda, 600);
+}
+
+
+/* ---------- 10. ARRANQUE ----------
+   Dibujamos a Mishi en todas las pantallas y mostramos el menú. */
+document.getElementById('mishi-menu').innerHTML     = dibujoGato();
+document.getElementById('mishi-juego').innerHTML    = dibujoGato();
+document.getElementById('intro-mishi').innerHTML    = dibujoGato();
+document.getElementById('mishi-victoria').innerHTML = dibujoGato({ cara: 'contento' });
+document.getElementById('mishi-derrota').innerHTML  = dibujoGato({ cara: 'triste' });
+document.getElementById('mishi-final').innerHTML    = dibujoGato({ cara: 'contento', extra: 'corona' });
+document.getElementById('espia-izq').innerHTML      = dibujoGato({ color: '#cfc7dd', rayas: '#a89dbf' });
+document.getElementById('espia-der').innerHTML      = dibujoGato({ color: '#fff1df', rayas: '#e8c49c' });
+actualizarBotonSonido();
+mostrarPantalla('menu');
+</script>
+</body>
+</html>
