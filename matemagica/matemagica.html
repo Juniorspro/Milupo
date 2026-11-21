@@ -2,240 +2,409 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Matemágica · Sumas, restas y multiplicaciones</title>
-<!-- Letra redondita de Google Fonts. Sin internet se usa otra parecida. -->
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matemágica · Aprendé matemática jugando</title>
+<!-- Letras de Google Fonts: Baloo 2 (títulos y números) y Nunito (textos). Sin internet se usan otras parecidas. -->
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* =====================================================================
    MATEMÁGICA · ESTILOS
-   1. Colores y base       4. Lección del nivel
-   2. Botones y tarjetas   5. Pantalla de juego
-   3. Inicio y mapa        6. Resultado, festejo y diploma
+   1. Colores, letras y medidas      5. Lección del nivel
+   2. Base y botones                 6. Pantalla de juego
+   3. Pantalla de inicio             7. Resultado, festejo y diploma
+   4. Mapa de niveles                8. Animaciones
    ===================================================================== */
 
-/* ---------- 1. Colores y base ---------- */
+/* ---------- 1. Colores, letras y medidas ---------- */
 :root {
-  --texto: #2b2d42;
-  --rojo: #ff4d6d;     --rojo-borde: #d62f50;
-  --naranja: #ff8c1a;  --naranja-borde: #d96d00;
-  --amarillo: #ffd23f; --amarillo-borde: #e0a800;
-  --verde: #22b35e;    --verde-borde: #158a45;
-  --celeste: #2fa8ff;  --celeste-borde: #1580d0;
-  --violeta: #8a4dff;  --violeta-borde: #6a2fdb;
-  --rosa: #ff4fa3;     --rosa-borde: #d62f82;
-  --blanco: #ffffff;
-  --sombra: 0 6px 0 rgba(43, 45, 66, .15);
-  --mundo: var(--verde);           /* color del mundo actual (lo cambia el código) */
-  --mundo-claro: #d3f8e2;
+  --fondo: #f4f6fc;
+  --superficie: #ffffff;
+  --borde: #e3e7f1;
+  --texto: #1d2140;
+  --texto-suave: #676f8f;
+
+  --primario: #6d4aff;  --primario-oscuro: #5532e0;  --primario-claro: #efeaff;
+  --verde: #16b364;     --verde-oscuro: #0e8f4f;     --verde-claro: #e3f8ec;
+  --azul: #2e7cf6;      --azul-oscuro: #1f5fcc;      --azul-claro: #e5efff;
+  --rosa: #f0487e;      --rosa-oscuro: #c92d62;      --rosa-claro: #ffe6ef;
+  --rojo: #ef4461;      --rojo-oscuro: #c42a45;      --rojo-claro: #ffe9ed;
+  --amarillo: #ffc531;  --naranja: #ff8a1f;
+
+  /* Color del mundo actual (el código lo cambia al entrar a un nivel) */
+  --mundo: var(--primario); --mundo-oscuro: var(--primario-oscuro); --mundo-claro: var(--primario-claro);
+
+  --radio-chico: 14px; --radio: 20px; --radio-grande: 28px;
+  --elevacion: 0 1px 2px rgba(29, 33, 64, .05), 0 10px 30px rgba(29, 33, 64, .08);
+  --letra-titulos: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  --letra-texto: 'Nunito', system-ui, sans-serif;
 }
+
+/* ---------- 2. Base y botones ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Baloo 2', 'Comic Sans MS', system-ui, sans-serif; color: var(--texto);
-  background: linear-gradient(160deg, #7fd3ff, #ffe27a 55%, #ff9ec7);
+  font-family: var(--letra-texto); font-weight: 600; color: var(--texto); background: var(--fondo);
   min-height: 100vh; overflow-x: hidden;
   -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
 }
-button { font-family: inherit; color: inherit; border: none; cursor: pointer; touch-action: manipulation; }
+body::before {   /* manchas de color muy suaves en el fondo */
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(600px 420px at 0% 0%, #ffe8f1 0, transparent 70%),
+    radial-gradient(700px 480px at 100% 0%, #ebe6ff 0, transparent 70%),
+    radial-gradient(800px 520px at 50% 115%, #e0f4ff 0, transparent 70%);
+}
+body.en-mundo::before { background: linear-gradient(180deg, var(--mundo-claro) 0, var(--fondo) 420px); }
+h1, h2, h3 { font-family: var(--letra-titulos); font-weight: 800; line-height: 1.1; }
+h2 { font-size: 1.9rem; }
+button { font-family: inherit; color: inherit; border: none; background: none; cursor: pointer; touch-action: manipulation; }
 .oculto { display: none !important; }
-h2 { font-size: 1.9rem; line-height: 1.1; }
 
-.pantalla {
-  display: none; min-height: 100vh; padding: 16px;
-  flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center;
-  position: relative;
-}
+.pantalla { display: none; min-height: 100vh; padding: 18px 16px 36px; flex-direction: column; align-items: center; gap: 18px; }
 .pantalla.activa { display: flex; }
+.ancho { width: 100%; max-width: 1080px; }
 
-/* Números y signos que flotan en el fondo */
-.decoracion { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-.decoracion span { position: absolute; font-weight: 800; color: rgba(255, 255, 255, .45); animation: flotar 8s ease-in-out infinite; }
-.pantalla > * { position: relative; z-index: 1; }
-
-/* ---------- 2. Botones y tarjetas ---------- */
 .boton {
-  font-size: 1.35rem; font-weight: 700; color: #fff; background: var(--rosa);
-  padding: 12px 28px; border-radius: 999px; box-shadow: 0 6px 0 var(--rosa-borde);
-  transition: transform .08s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: 800 1.1rem var(--letra-texto); color: #fff; background: var(--primario);
+  padding: 13px 24px; border-radius: 16px; box-shadow: 0 4px 0 var(--primario-oscuro);
+  transition: transform .08s, box-shadow .08s, filter .15s;
 }
-.boton:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--rosa-borde); }
-.boton.verde    { background: var(--verde);    box-shadow: 0 6px 0 var(--verde-borde); }
-.boton.celeste  { background: var(--celeste);  box-shadow: 0 6px 0 var(--celeste-borde); }
-.boton.violeta  { background: var(--violeta);  box-shadow: 0 6px 0 var(--violeta-borde); }
-.boton.naranja  { background: var(--naranja);  box-shadow: 0 6px 0 var(--naranja-borde); }
-.boton.amarillo { background: var(--amarillo); box-shadow: 0 6px 0 var(--amarillo-borde); color: var(--texto); }
-.boton.blanco   { background: #fff; color: var(--texto); box-shadow: 0 6px 0 #d9dbe8; }
-.boton.chico    { font-size: 1.05rem; padding: 8px 18px; }
+.boton:hover { filter: brightness(1.06); }
+.boton:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--primario-oscuro); }
+.boton.mundo { background: var(--mundo); box-shadow: 0 4px 0 var(--mundo-oscuro); }
+.boton.verde { background: var(--verde); box-shadow: 0 4px 0 var(--verde-oscuro); }
+.boton.rojo  { background: var(--rojo); box-shadow: 0 4px 0 var(--rojo-oscuro); }
+.boton.secundario { background: #fff; color: var(--texto); border: 2px solid var(--borde); box-shadow: 0 4px 0 var(--borde); padding: 11px 20px; }
+.boton.grande { font-size: 1.25rem; padding: 15px 30px; }
+.boton .icono { width: 20px; height: 20px; }
 .fila-botones { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
-.tarjeta {
-  background: var(--blanco); border-radius: 30px; padding: 22px;
-  width: 100%; max-width: 560px; box-shadow: 0 10px 0 rgba(43, 45, 66, .15);
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
+.boton-icono {
+  width: 46px; height: 46px; border-radius: 14px; flex: none;
+  background: #fff; border: 2px solid var(--borde); box-shadow: 0 3px 0 var(--borde);
+  display: grid; place-items: center; color: var(--texto);
 }
-.chip { background: #fff; border-radius: 999px; padding: 6px 14px; font-weight: 700; box-shadow: 0 4px 0 rgba(43, 45, 66, .12); white-space: nowrap; }
-.globo { background: #fff; border-radius: 22px; padding: 10px 16px; font-size: 1.15rem; font-weight: 600; box-shadow: var(--sombra); position: relative; }
-.profe { width: 110px; flex: none; }
-.profe.grande { width: clamp(140px, 36vw, 190px); animation: respirar 2.2s ease-in-out infinite; cursor: pointer; }
+.boton-icono:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--borde); }
+.icono { width: 22px; height: 22px; display: block; }
+
+.tarjeta {
+  background: var(--superficie); border: 2px solid var(--borde); border-radius: var(--radio-grande);
+  box-shadow: var(--elevacion); padding: 22px; width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 2px solid var(--borde);
+  border-radius: 999px; padding: 5px 12px; font-weight: 800; font-size: .92rem; white-space: nowrap;
+}
+.etiqueta { font-weight: 900; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--mundo); }
+.barra-progreso { height: 10px; border-radius: 999px; background: #e8ebf4; overflow: hidden; width: 100%; }
+.barra-progreso span { display: block; height: 100%; border-radius: inherit; background: var(--c, var(--primario)); transition: width .8s ease; }
+.globo {
+  position: relative; background: #fff; border: 2px solid var(--borde); border-radius: 18px;
+  padding: 10px 16px; font-weight: 700; box-shadow: var(--elevacion);
+}
 .profe svg { width: 100%; display: block; overflow: visible; }
 
-/* ---------- 3. Inicio y mapa ---------- */
-.titulo { font-size: clamp(3rem, 13vw, 5.4rem); font-weight: 800; line-height: .95; letter-spacing: 1px; }
-.titulo span { display: inline-block; animation: rebotar 1.6s ease-in-out infinite; text-shadow: 0 5px 0 rgba(43, 45, 66, .18); }
-.subtitulo { font-size: 1.3rem; font-weight: 700; color: #fff; text-shadow: 0 2px 0 rgba(43, 45, 66, .25); }
-.campo-nombre { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 1.1rem; }
+/* Estrellas (dibujadas en SVG) */
+.estrella { width: 18px; height: 18px; color: #dfe3ee; }
+.estrella.llena { color: var(--amarillo); }
+.estrellas { display: inline-flex; gap: 2px; }
+
+/* Encabezado de las pantallas */
+.encabezado { width: 100%; max-width: 1080px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.marca { display: flex; align-items: center; gap: 10px; font: 800 1.35rem var(--letra-titulos); }
+.marca-logo {
+  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff;
+  font: 800 1.5rem var(--letra-titulos); background: linear-gradient(135deg, var(--primario), var(--rosa));
+  box-shadow: 0 3px 0 var(--primario-oscuro);
+}
+
+/* Avisito que aparece abajo */
+.aviso {
+  position: fixed; left: 50%; bottom: 24px; z-index: 70; transform: translate(-50%, 200%);
+  background: var(--texto); color: #fff; padding: 12px 18px; border-radius: 14px; font-weight: 700;
+  max-width: 90vw; text-align: center; transition: transform .25s ease, opacity .25s; pointer-events: none; opacity: 0;
+}
+.aviso.visible { transform: translate(-50%, 0); opacity: 1; }
+
+/* ---------- 3. Pantalla de inicio ---------- */
+.portada { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: center; }
+.portada-texto { display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; }
+.portada-ilustracion { order: -1; position: relative; width: min(66vw, 280px); aspect-ratio: 1; justify-self: center; margin-bottom: 18px; }
+@media (min-width: 900px) {
+  .portada { grid-template-columns: 1.1fr .9fr; gap: 48px; margin-top: 18px; }
+  .portada-texto { align-items: flex-start; text-align: left; }
+  .temas { justify-content: flex-start; }
+  .portada-ilustracion { order: 0; width: min(100%, 440px); }
+}
+.insignia { background: var(--primario-claro); color: var(--primario-oscuro); font-weight: 900; font-size: .88rem; padding: 6px 14px; border-radius: 999px; }
+.titulo { font: 800 clamp(3.2rem, 12vw, 5.6rem)/.92 var(--letra-titulos); letter-spacing: -1.5px; }
+.titulo span {
+  background: linear-gradient(90deg, var(--primario), var(--rosa) 55%, var(--naranja));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.bajada { font-size: 1.2rem; color: var(--texto-suave); font-weight: 700; max-width: 470px; line-height: 1.45; }
+.temas { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.tema { display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--borde); border-radius: 999px; padding: 5px 14px 5px 5px; font-weight: 800; }
+.tema b { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 800 1.25rem var(--letra-titulos); background: var(--c); }
+.empezar { max-width: 480px; align-items: stretch; text-align: left; padding: 18px; }
+.empezar label { font-weight: 800; }
+.fila-empezar { display: flex; gap: 10px; }
+@media (max-width: 520px) { .fila-empezar { flex-direction: column; } }
 #nombre {
-  font-family: inherit; font-size: 1.4rem; font-weight: 700; text-align: center; color: var(--texto);
-  width: 240px; padding: 6px 12px; border-radius: 18px; border: 4px solid #ffd23f; outline: none; background: #fffdf3;
+  flex: 1; min-width: 0; font: 800 1.15rem var(--letra-texto); color: var(--texto);
+  padding: 12px 16px; border: 2px solid var(--borde); border-radius: 16px; background: var(--fondo); outline: none;
 }
-#nombre:focus { border-color: var(--rosa); }
+#nombre:focus { border-color: var(--primario); background: #fff; box-shadow: 0 0 0 4px var(--primario-claro); }
+.progreso-inicio { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 2px dashed var(--borde); }
+.progreso-inicio p { display: flex; justify-content: space-between; font-weight: 800; font-size: .95rem; color: var(--texto-suave); }
 
-#mapa { justify-content: flex-start; }
-.cabecera { width: 100%; max-width: 900px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.cabecera h2 { color: #fff; text-shadow: 0 3px 0 rgba(43, 45, 66, .25); }
-.mundos { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 16px; }
-.mundo { border-radius: 28px; padding: 14px 14px 18px; box-shadow: var(--sombra); }
-.mundo h3 { font-size: 1.45rem; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .18); margin-bottom: 10px; }
-.mundo.bloqueado { filter: grayscale(.75); opacity: .75; }
-.niveles { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
-.boton-nivel {
-  position: relative; width: 120px; padding: 10px 6px 8px; border-radius: 24px; background: #fff;
-  display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: 0 6px 0 rgba(43, 45, 66, .18);
+.circulo { position: absolute; inset: 9%; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #9a82ff, var(--primario) 55%, var(--primario-oscuro)); box-shadow: 0 30px 60px rgba(109, 74, 255, .28); }
+.profe-centro { position: absolute; left: 21%; top: 18%; width: 58%; cursor: pointer; }
+.profe-centro .profe { animation: respirar 2.4s ease-in-out infinite; }
+.ficha {
+  position: absolute; width: 18%; aspect-ratio: 1; border-radius: 24%; display: grid; place-items: center;
+  font: 800 clamp(1.4rem, 6vw, 2.3rem) var(--letra-titulos); color: #fff; background: var(--c);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, .14), 0 12px 24px rgba(29, 33, 64, .15); animation: flotar 5s ease-in-out infinite;
 }
-.boton-nivel:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(43, 45, 66, .18); }
-.boton-nivel .numero {
-  width: 52px; height: 52px; border-radius: 50%; background: var(--color); color: #fff;
-  font-size: 1.7rem; font-weight: 800; display: flex; align-items: center; justify-content: center;
+.ficha:nth-of-type(1) { top: 4%;  left: 2%;   --c: var(--verde);    animation-delay: -1s; }
+.ficha:nth-of-type(2) { top: 0;   right: 8%;  --c: var(--amarillo); animation-delay: -2s; }
+.ficha:nth-of-type(3) { bottom: 16%; left: -2%; --c: var(--azul);   animation-delay: -3s; }
+.ficha:nth-of-type(4) { bottom: 22%; right: -6%; --c: var(--rosa);  animation-delay: -4s; }
+.ficha:nth-of-type(5) { top: 42%; right: -4%; --c: var(--naranja);  animation-delay: -2.5s; width: 15%; }
+.portada-ilustracion .globo { position: absolute; left: 50%; bottom: -6%; transform: translateX(-50%); width: max-content; max-width: 92%; text-align: center; font-size: .98rem; }
+@media (max-width: 600px) { .portada-ilustracion .globo { display: none; } .portada-ilustracion { margin-bottom: 0; } }
+.portada-ilustracion .globo::before { content: ''; position: absolute; top: -10px; left: 50%; margin-left: -9px; border: 9px solid transparent; border-top: 0; border-bottom-color: #fff; }
+
+.pasos { margin-top: 8px; }
+.pasos h2 { font-size: 1.5rem; margin-bottom: 12px; text-align: center; }
+.pasos ol { list-style: none; display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 760px) { .pasos ol { grid-template-columns: repeat(3, 1fr); } }
+.pasos li { background: #fff; border: 2px solid var(--borde); border-radius: var(--radio); padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
+.pasos li b { display: block; font: 800 1.15rem var(--letra-titulos); }
+.pasos li p { color: var(--texto-suave); font-weight: 700; font-size: .95rem; line-height: 1.35; }
+.paso-num { width: 38px; height: 38px; border-radius: 12px; flex: none; display: grid; place-items: center; color: #fff; font: 800 1.25rem var(--letra-titulos); background: var(--c); }
+
+/* ---------- 4. Mapa de niveles ---------- */
+.encabezado-titulo { flex: 1; text-align: center; }
+.encabezado-titulo h2 { font-size: 1.6rem; }
+.encabezado-titulo p { color: var(--texto-suave); font-weight: 700; }
+.resumen { padding: 16px 20px; align-items: stretch; gap: 10px; }
+.resumen-datos { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: baseline; justify-content: space-between; }
+.dato b { font: 800 1.7rem var(--letra-titulos); }
+.dato span { color: var(--texto-suave); font-weight: 800; margin-left: 4px; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .88rem; font-weight: 800; color: var(--texto-suave); }
+.leyenda i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 6px; vertical-align: -2px; }
+
+.mundos { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 1000px) { .mundos { grid-template-columns: repeat(3, 1fr); } }
+.mundo { background: #fff; border: 2px solid var(--borde); border-radius: var(--radio-grande); overflow: hidden; box-shadow: var(--elevacion); }
+.mundo-cabecera { position: relative; overflow: hidden; background: var(--color); color: #fff; padding: 16px 18px; display: flex; align-items: center; gap: 12px; }
+.mundo-cabecera::after {   /* símbolo gigante de fondo */
+  content: attr(data-simbolo); position: absolute; right: 6px; top: 50%; transform: translateY(-52%);
+  font: 800 7.5rem/1 var(--letra-titulos); opacity: .16;
 }
-.boton-nivel .nombre { font-size: .9rem; font-weight: 700; line-height: 1.1; min-height: 2.2em; display: flex; align-items: center; }
-.boton-nivel.cerrado { opacity: .6; }
-.boton-nivel.cerrado .numero { background: #b8bccb; }
-.boton-nivel.siguiente { animation: latir 1.2s ease-in-out infinite; }
-.boton-nivel .aca { position: absolute; top: -26px; right: -14px; width: 54px; }
-.estrellas { font-size: 1.15rem; letter-spacing: 1px; }
-.apagada { filter: grayscale(1); opacity: .3; }
+.mundo-icono { width: 54px; height: 54px; border-radius: 16px; flex: none; background: rgba(255, 255, 255, .22); display: grid; place-items: center; font: 800 2.2rem/1 var(--letra-titulos); }
+.mundo-cabecera p { font-size: .78rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+.mundo-cabecera h3 { font-size: 1.4rem; }
+.mundo-meta { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px 8px; font-weight: 800; font-size: .92rem; color: var(--texto-suave); }
+.mundo .barra-progreso { width: auto; margin: 0 18px; }
+.mundo.bloqueado .mundo-cabecera { background: #aeb5ca; }
+.mundo-aviso { margin: 12px 18px 0; padding: 10px 12px; border-radius: 12px; background: var(--fondo); color: var(--texto-suave); font-weight: 800; font-size: .92rem; display: flex; gap: 8px; align-items: center; }
+.mundo-aviso .icono { width: 18px; height: 18px; flex: none; }
 
-/* ---------- 4. Lección del nivel ---------- */
-#leccion .tarjeta { border-top: 14px solid var(--mundo); }
-.etiqueta { font-weight: 800; color: var(--mundo); text-transform: uppercase; letter-spacing: 1px; font-size: 1rem; }
-.leccion-emoji { font-size: 4rem; line-height: 1; animation: rebotar 1.6s ease-in-out infinite; }
-.leccion-texto { font-size: 1.25rem; font-weight: 500; line-height: 1.35; }
-.ejemplo { background: var(--mundo-claro); border-radius: 20px; padding: 12px 18px; font-size: clamp(1.1rem, 5.2vw, 1.6rem); font-weight: 800; width: 100%; }
-.nota { font-size: 1rem; font-weight: 600; opacity: .75; }
+.camino { list-style: none; padding: 14px 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.paso { position: relative; }
+.paso:not(:last-child)::after {   /* la línea que une los niveles */
+  content: ''; position: absolute; left: 35px; top: 58px; height: 34px; width: 4px; border-radius: 2px; background: var(--borde);
+}
+.paso.completado:not(:last-child)::after { background: var(--color); }
+.paso > button {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 10px;
+  border-radius: 18px; border: 2px solid transparent; text-align: left; transition: background .15s;
+}
+.paso.completado > button:hover { background: var(--fondo); }
+.paso.disponible > button { background: var(--claro); border-color: var(--color); }
+.paso.bloqueado > button { cursor: not-allowed; }
+.nodo { position: relative; z-index: 1; width: 50px; height: 50px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 800 1.35rem var(--letra-titulos); }
+.nodo .icono { width: 22px; height: 22px; }
+.completado .nodo { background: var(--color); color: #fff; box-shadow: 0 3px 0 var(--oscuro); }
+.disponible .nodo { background: #fff; color: var(--color); border: 4px solid var(--color); animation: latir 1.6s ease-in-out infinite; }
+.bloqueado .nodo { background: #eef0f6; color: #a2a8bf; }
+.info { flex: 1; min-width: 0; }
+.info b { display: block; font-size: 1.02rem; line-height: 1.2; }
+.bloqueado .info b { color: #9097b0; }
+.info small { color: var(--texto-suave); font-weight: 700; font-size: .84rem; }
+.estado { flex: none; }
+.estado-jugar { display: inline-flex; align-items: center; gap: 4px; background: var(--color); color: #fff; font-weight: 900; padding: 6px 12px; border-radius: 999px; font-size: .9rem; }
+.estado-jugar .icono { width: 14px; height: 14px; }
 
-/* ---------- 5. Pantalla de juego ---------- */
-#juego { justify-content: flex-start; gap: 10px; padding-top: 12px; }
-.barra { width: 100%; max-width: 640px; display: flex; align-items: center; gap: 8px; }
-.boton-salir { width: 46px; height: 46px; border-radius: 50%; background: #fff; font-size: 1.3rem; font-weight: 800; box-shadow: 0 4px 0 rgba(43, 45, 66, .15); flex: none; }
-.nombre-nivel { flex: 1; text-align: left; background: #fff; border-radius: 999px; padding: 8px 16px; font-weight: 800; font-size: 1.05rem; box-shadow: 0 4px 0 rgba(43, 45, 66, .12); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.racha { background: var(--amarillo); }
-.puntitos { display: flex; gap: 8px; }
-.puntitos span { width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 255, 255, .7); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .08); }
-.puntitos span.actual { background: #fff; outline: 4px solid var(--mundo); }
-.puntitos span.bien { background: var(--verde); }
-.puntitos span.mal { background: var(--rojo); }
-.ayudante { width: 100%; max-width: 640px; display: flex; align-items: center; gap: 10px; }
-.ayudante .profe { width: 76px; }
-.ayudante .globo { flex: 1; text-align: left; font-size: 1.1rem; }
-.ayudante .globo::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -11px; border: 11px solid transparent; border-left: 0; border-right-color: #fff; }
+/* ---------- 5. Lección del nivel ---------- */
+#leccion, #resultado { justify-content: center; }
+.leccion { max-width: 600px; padding: 0; overflow: hidden; align-items: stretch; gap: 0; text-align: center; }
+.leccion-cabecera { background: var(--mundo); color: #fff; padding: 26px 20px 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.leccion-cabecera .etiqueta { color: rgba(255, 255, 255, .9); }
+.leccion-emoji { width: 86px; height: 86px; border-radius: 26px; display: grid; place-items: center; font-size: 3rem; background: rgba(255, 255, 255, .22); }
+.leccion-cuerpo { padding: 22px 22px 4px; display: flex; flex-direction: column; gap: 16px; }
+.leccion-texto { font-size: 1.18rem; line-height: 1.45; font-weight: 700; }
+.ejemplo { border: 2px dashed var(--mundo); background: var(--mundo-claro); border-radius: var(--radio); padding: 12px 16px; font: 800 clamp(1.15rem, 5vw, 1.6rem)/1.3 var(--letra-titulos); }
+.ejemplo small { display: block; font: 900 .75rem var(--letra-texto); letter-spacing: .1em; text-transform: uppercase; color: var(--mundo-oscuro); margin-bottom: 2px; }
+.datos-nivel { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.leccion-botones { padding: 18px 22px 22px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
-.pregunta { max-width: 640px; border-top: 12px solid var(--mundo); }
-.enunciado { font-size: 1.3rem; font-weight: 600; line-height: 1.3; }
-.dibujo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; font-size: 2.1rem; line-height: 1.15; }
-.dibujo .grupo { background: var(--mundo-claro); border-radius: 18px; padding: 4px 10px; max-width: 260px; }
-.dibujo .signo { font-size: 2.4rem; font-weight: 800; color: var(--mundo); }
+/* ---------- 6. Pantalla de juego ---------- */
+#juego { justify-content: flex-start; gap: 14px; padding-bottom: 230px; }
+.juego-barra, .juego-titulo, .ayudante, .pregunta { width: 100%; max-width: 680px; }
+.juego-barra { display: flex; align-items: center; gap: 12px; }
+.segmentos { flex: 1; display: flex; gap: 6px; }
+.segmentos span { flex: 1; height: 12px; border-radius: 999px; background: #e2e6f0; transition: background .3s; }
+.segmentos span.actual { background: var(--mundo-claro); box-shadow: inset 0 0 0 2px var(--mundo); }
+.segmentos span.bien { background: var(--verde); }
+.segmentos span.mal { background: var(--rojo); }
+.racha { background: #fff4d9; border-color: #ffd98a; color: #a8620a; }
+.juego-titulo { font-weight: 800; color: var(--texto-suave); font-size: .95rem; }
+.juego-titulo span { color: var(--mundo); }
+.ayudante { display: flex; align-items: center; gap: 12px; }
+.ayudante .profe { width: 68px; flex: none; }
+.ayudante .globo { flex: 1; font-size: 1.05rem; }
+.ayudante .globo::before { content: ''; position: absolute; left: -11px; top: 50%; margin-top: -9px; border: 9px solid transparent; border-left: 0; border-right-color: var(--borde); }
+.pregunta { padding: 24px 20px; gap: 16px; }
+.enunciado { font-size: 1.25rem; font-weight: 800; line-height: 1.4; text-align: center; }
+.dibujo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; font-size: 2rem; line-height: 1.15; }
+.dibujo .grupo { background: var(--mundo-claro); border-radius: 16px; padding: 4px 10px; max-width: 260px; }
+.dibujo .signo { font: 800 2.3rem var(--letra-titulos); color: var(--mundo); }
 .dibujo .tachado { position: relative; opacity: .35; }
-.dibujo .tachado::after { content: '✖'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--rojo); font-size: 1.6rem; opacity: 1; }
-.cuenta { font-size: clamp(2.6rem, 12vw, 4rem); font-weight: 800; line-height: 1.1; letter-spacing: 1px; }
+.dibujo .tachado::after { content: '✖'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--rojo); font-size: 1.5rem; opacity: 1; }
+.cuenta { font: 800 clamp(2.6rem, 12vw, 4.2rem)/1.1 var(--letra-titulos); text-align: center; }
 .cuenta .signo { color: var(--mundo); }
-.cajita {
-  display: inline-block; min-width: 1.6em; padding: 0 .2em; border-radius: 16px;
-  background: #fff7d6; border: 4px dashed var(--amarillo-borde); color: var(--texto);
-}
-.texto-saber { font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
+.cajita { display: inline-block; min-width: 1.6em; padding: 0 .2em; border-radius: 16px; background: var(--mundo-claro); border: 3px dashed var(--mundo); color: var(--mundo-oscuro); }
+.texto-saber { font: 800 1.45rem/1.3 var(--letra-titulos); text-align: center; }
+.saber-etiqueta { display: inline-flex; align-items: center; gap: 6px; background: var(--primario-claro); color: var(--primario-oscuro); padding: 4px 12px; border-radius: 999px; font-weight: 900; font-size: .85rem; }
 
+.respuestas { width: 100%; display: flex; justify-content: center; }
 .opciones { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .opcion {
-  font-size: 1.9rem; font-weight: 800; color: #fff; padding: 10px 8px; border-radius: 22px; min-height: 74px;
-  box-shadow: 0 6px 0 rgba(0, 0, 0, .18); transition: transform .08s;
+  min-height: 78px; padding: 10px; border-radius: 18px; background: #fff; border: 2px solid var(--borde);
+  box-shadow: 0 4px 0 var(--borde); font: 800 2.1rem var(--letra-titulos); color: var(--texto);
+  transition: transform .08s, border-color .15s, background .15s;
 }
-.opcion.texto { font-size: 1.25rem; line-height: 1.2; }
-.opcion:active { transform: translateY(4px); }
-.opcion:nth-child(1) { background: var(--celeste); }
-.opcion:nth-child(2) { background: var(--naranja); }
-.opcion:nth-child(3) { background: var(--violeta); }
-.opcion:nth-child(4) { background: var(--rosa); }
-.opcion.correcta { background: var(--verde) !important; transform: scale(1.05); }
-.opcion.incorrecta { background: #c9ccd8 !important; }
+.opcion:hover:not(:disabled) { border-color: var(--mundo); background: var(--mundo-claro); }
+.opcion:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--borde); }
+.opcion.texto { font: 800 1.1rem/1.25 var(--letra-texto); }
+.opcion.correcta { background: var(--verde-claro); border-color: var(--verde); box-shadow: 0 4px 0 var(--verde); color: var(--verde-oscuro); }
+.opcion.incorrecta { background: var(--rojo-claro); border-color: var(--rojo); box-shadow: 0 4px 0 var(--rojo); color: var(--rojo-oscuro); }
 .opcion:disabled { cursor: default; }
+.opcion:disabled:not(.correcta):not(.incorrecta) { opacity: .45; }
 
 .teclado { width: 100%; max-width: 360px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.tecla { font-size: 1.9rem; font-weight: 800; padding: 6px; border-radius: 18px; background: #f1f3ff; box-shadow: 0 5px 0 #d4d8ee; min-height: 62px; }
-.tecla:active { transform: translateY(4px); box-shadow: 0 1px 0 #d4d8ee; }
-.tecla.borrar { background: #ffe0e6; box-shadow: 0 5px 0 #f3b4c1; }
-.tecla.listo { background: var(--verde); color: #fff; box-shadow: 0 5px 0 var(--verde-borde); }
+.tecla { min-height: 62px; border-radius: 16px; background: #fff; border: 2px solid var(--borde); box-shadow: 0 4px 0 var(--borde); font: 800 1.9rem var(--letra-titulos); }
+.tecla:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--borde); }
+.tecla.borrar { color: var(--rojo); }
+.tecla.borrar .icono, .tecla.listo .icono { width: 26px; height: 26px; margin: auto; }
+.tecla.listo { background: var(--mundo); border-color: var(--mundo); box-shadow: 0 4px 0 var(--mundo-oscuro); color: #fff; }
 
-.respuesta-info { width: 100%; border-radius: 22px; padding: 12px 16px; font-size: 1.2rem; font-weight: 600; line-height: 1.35; display: flex; flex-direction: column; gap: 8px; align-items: center; }
-.respuesta-info.bien { background: #d7f9e4; }
-.respuesta-info.mal { background: #ffe1e7; }
-.respuesta-info b { font-size: 1.4rem; }
-.respuesta-info .explicacion { font-size: 1.15rem; }
+/* Panel de respuesta (sube desde abajo) */
+.panel-respuesta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); border-top: 3px solid;
+  transform: translateY(110%); transition: transform .3s cubic-bezier(.2, .9, .3, 1.15);
+}
+.panel-respuesta.visible { transform: translateY(0); }
+.panel-respuesta.bien { background: var(--verde-claro); border-color: var(--verde); }
+.panel-respuesta.mal { background: var(--rojo-claro); border-color: var(--rojo); }
+.panel-contenido { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+.panel-icono { width: 52px; height: 52px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; }
+.panel-icono .icono { width: 28px; height: 28px; }
+.bien .panel-icono { background: var(--verde); }
+.mal .panel-icono { background: var(--rojo); }
+.panel-texto { flex: 1; min-width: 0; }
+.panel-texto b { display: block; font: 800 1.35rem var(--letra-titulos); }
+.bien .panel-texto b { color: var(--verde-oscuro); }
+.mal .panel-texto b { color: var(--rojo-oscuro); }
+.panel-texto p { font-weight: 700; line-height: 1.4; margin-top: 2px; }
+@media (max-width: 600px) { .panel-contenido { flex-wrap: wrap; } .panel-contenido .boton { width: 100%; } }
 
-/* ---------- 6. Resultado, festejo y diploma ---------- */
-.estrellas-grandes span { font-size: 3.6rem; display: inline-block; animation: aparecer .6s cubic-bezier(.3, 1.6, .5, 1) backwards; }
-.resultado-texto { font-size: 1.35rem; font-weight: 700; }
-.nuevo-mundo { background: var(--amarillo); border-radius: 18px; padding: 8px 14px; font-weight: 800; font-size: 1.15rem; animation: latir 1.2s infinite; }
+/* ---------- 7. Resultado, festejo y diploma ---------- */
+.resultado { max-width: 520px; padding: 0; overflow: hidden; gap: 0; }
+.resultado-cabecera { width: 100%; background: var(--mundo-claro); padding: 22px 0 6px; display: flex; justify-content: center; }
+.resultado-cabecera .profe { width: 130px; }
+.resultado-cuerpo { width: 100%; padding: 10px 22px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.estrellas-grandes { display: flex; align-items: flex-end; gap: 6px; }
+.estrellas-grandes .estrella { width: 58px; height: 58px; animation: aparecer .6s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.estrellas-grandes .estrella:nth-child(2) { width: 72px; height: 72px; }
+.estadisticas { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.estadisticas div { background: var(--fondo); border-radius: 16px; padding: 10px 4px; }
+.estadisticas b { display: block; font: 800 1.6rem var(--letra-titulos); }
+.estadisticas span { font-size: .75rem; font-weight: 900; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .05em; }
+.resultado-texto { font-weight: 700; color: var(--texto-suave); font-size: 1.05rem; }
+.nuevo-mundo { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff4d9; border: 2px solid #ffd98a; color: #8a4f00; border-radius: 16px; padding: 10px 14px; font-weight: 900; }
 
 #confeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 .festejo {
   position: fixed; inset: 0; z-index: 55; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  background: radial-gradient(circle, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 70%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px;
+  background: radial-gradient(circle, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 70%);
 }
 .festejo span {
-  font-size: clamp(2.1rem, 9vw, 4rem); font-weight: 800; color: #fff; padding: 2px 26px; border-radius: 22px;
-  box-shadow: 0 8px 0 rgba(0, 0, 0, .18); animation: aparecer .7s cubic-bezier(.3, 1.6, .5, 1) backwards;
+  font: 800 clamp(2rem, 8.5vw, 3.8rem)/1.2 var(--letra-titulos); color: #fff; padding: 4px 26px; border-radius: 20px; text-align: center;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, .15), 0 18px 40px rgba(29, 33, 64, .2); animation: aparecer .7s cubic-bezier(.3, 1.6, .5, 1) backwards;
 }
-.festejo span:nth-child(1) { background: var(--rosa); transform: rotate(-4deg); animation-delay: .1s; }
-.festejo span:nth-child(2) { background: var(--violeta); transform: rotate(3deg); animation-delay: .8s; }
+.festejo span:nth-child(1) { background: var(--rosa); transform: rotate(-3deg); animation-delay: .1s; }
+.festejo span:nth-child(2) { background: var(--primario); transform: rotate(2deg); animation-delay: .8s; }
 .festejo span:nth-child(3) { background: var(--naranja); transform: rotate(-2deg); animation-delay: 1.5s; }
 .festejo.salir { animation: desvanecer .6s forwards; }
 
-#final { background: linear-gradient(160deg, #ffe27a, #ff9ec7 50%, #9fd8ff); }
 .diploma {
-  width: 100%; max-width: 620px; background: #fffdf3; border-radius: 22px; padding: 26px 20px;
-  border: 10px double var(--amarillo-borde); box-shadow: 0 10px 0 rgba(43, 45, 66, .15);
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 100%; max-width: 640px; background: #fffdf5; border-radius: 24px; padding: 30px 22px;
+  border: 3px solid #e9c46a; box-shadow: inset 0 0 0 8px #fffdf5, inset 0 0 0 10px #f2d78f, var(--elevacion);
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
 }
-.diploma .sello { font-size: 3.4rem; }
-.diploma h2 { font-size: 2.3rem; color: var(--violeta); }
-.diploma .para { font-size: 1.2rem; font-weight: 600; }
-.diploma .quien { font-size: 2.4rem; font-weight: 800; color: var(--rosa); border-bottom: 4px solid var(--amarillo); padding: 0 20px; }
-.diploma p { font-size: 1.15rem; font-weight: 500; }
+.diploma .sello { width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; font-size: 2.4rem; background: linear-gradient(135deg, #ffd66b, #f4a623); box-shadow: 0 4px 0 #d38b12; }
+.diploma h2 { font-size: 2.2rem; color: var(--primario-oscuro); }
+.diploma .para { color: var(--texto-suave); font-weight: 800; }
+.diploma .quien { font: 800 2.4rem var(--letra-titulos); color: var(--rosa); border-bottom: 3px solid #f2d78f; padding: 0 24px; }
+.diploma p { font-weight: 700; }
 @media print {
-  body { background: #fff; }
-  .pantalla:not(#final), #final .fila-botones, #final > .profe, .decoracion, #confeti, .festejo { display: none !important; }
-  #final { display: flex !important; background: #fff; min-height: 0; }
+  body::before { display: none; }
+  .pantalla:not(#final), #final .fila-botones, #final > .profe, #confeti, .festejo, .aviso { display: none !important; }
+  #final { display: flex !important; min-height: 0; }
 }
 
-/* ---------- Animaciones ---------- */
-@keyframes flotar    { 50% { transform: translateY(-18px) rotate(10deg); } }
-@keyframes rebotar   { 50% { transform: translateY(-8px); } }
-@keyframes respirar  { 50% { transform: translateY(-6px) scale(1.02); } }
-@keyframes latir     { 50% { transform: scale(1.06); } }
-@keyframes aparecer  { from { transform: scale(0) rotate(-20deg); opacity: 0; } }
-@keyframes desvanecer { to { opacity: 0; transform: scale(1.1); } }
-@keyframes sacudir   { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-@keyframes saltito   { 40% { transform: translateY(-10px) scale(1.04); } }
+/* ---------- 8. Animaciones ---------- */
+@keyframes flotar     { 50% { transform: translateY(-12px) rotate(6deg); } }
+@keyframes respirar   { 50% { transform: translateY(-6px) scale(1.02); } }
+@keyframes latir      { 50% { transform: scale(1.07); } }
+@keyframes aparecer   { from { transform: scale(0) rotate(-20deg); opacity: 0; } }
+@keyframes desvanecer { to { opacity: 0; transform: scale(1.06); } }
+@keyframes sacudir    { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes entrar     { from { transform: translateY(12px); opacity: 0; } }
 .sacudir { animation: sacudir .35s; }
-.saltito { animation: saltito .45s; }
+.entrar { animation: entrar .35s ease; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
 </style>
 </head>
 <body>
 
-<div class="decoracion" id="decoracion"></div>
+<!-- Íconos dibujados (se usan con <svg><use href="#nombre"/></svg>) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7M6 9.5V20h4.5v-5.5h3V20H18V9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sonido" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-silencio" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-candado" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+    <symbol id="i-abierto" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 7.6-1.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11m0-11-11 11" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-atras" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-borrar" viewBox="0 0 24 24"><path d="M9 5.5h10.5v13H9L3.5 12z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M11.5 9.5l5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-estrella" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
 <canvas id="confeti"></canvas>
 <div class="festejo oculto" id="festejo"></div>
+<div class="aviso" id="aviso"></div>
 
 <!-- =====================================================================
      PANTALLAS (solo se ve la que tiene la clase "activa")
@@ -243,53 +412,106 @@ h2 { font-size: 1.9rem; line-height: 1.1; }
 
 <!-- 1. INICIO -->
 <section id="inicio" class="pantalla activa">
-  <h1 class="titulo" id="titulo"></h1>
-  <p class="subtitulo">➕ Sumas · ➖ Restas · ✖️ Multiplicaciones</p>
-  <div class="profe grande" id="profe-inicio" onclick="saludar()"></div>
-  <div class="globo" id="globo-inicio">¡Hola! Soy la Profe Mishi. ¿Jugamos con los números?</div>
-  <div class="tarjeta" style="max-width:380px">
-    <label class="campo-nombre" for="nombre">¿Cómo te llamás?
-      <input id="nombre" maxlength="14" placeholder="Tu nombre" autocomplete="off">
-    </label>
-    <button class="boton" onclick="irAlMapa()">▶ ¡A jugar!</button>
-    <button class="boton amarillo chico" id="boton-sonido" onclick="cambiarSonido()">🔊 Sonido: sí</button>
-  </div>
+  <header class="encabezado">
+    <div class="marca"><span class="marca-logo">M</span>Matemágica</div>
+    <button class="boton-icono boton-sonido" onclick="cambiarSonido()" aria-label="Sonido"></button>
+  </header>
+
+  <main class="portada ancho">
+    <div class="portada-texto">
+      <span class="insignia">Para chicos de 6 a 10 años</span>
+      <h1 class="titulo">Mate<span>mágica</span></h1>
+      <p class="bajada">Aprendé a sumar, restar y multiplicar jugando, paso a paso y con la ayuda de la Profe Mishi.</p>
+      <ul class="temas">
+        <li class="tema"><b style="--c:var(--verde)">+</b>Sumas</li>
+        <li class="tema"><b style="--c:var(--azul)">−</b>Restas</li>
+        <li class="tema"><b style="--c:var(--rosa)">×</b>Multiplicaciones</li>
+      </ul>
+      <div class="tarjeta empezar">
+        <label for="nombre">¿Cómo te llamás?</label>
+        <div class="fila-empezar">
+          <input id="nombre" maxlength="14" placeholder="Escribí tu nombre" autocomplete="off">
+          <button class="boton grande" id="boton-jugar" onclick="irAlMapa()"></button>
+        </div>
+        <div class="progreso-inicio oculto" id="progreso-inicio">
+          <p><span>Tu progreso</span><span id="progreso-inicio-texto"></span></p>
+          <div class="barra-progreso"><span id="progreso-inicio-barra" style="width:0"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="portada-ilustracion">
+      <div class="circulo"></div>
+      <span class="ficha">3</span><span class="ficha">+</span><span class="ficha">×</span><span class="ficha">7</span><span class="ficha">=</span>
+      <div class="profe-centro" onclick="saludar()"><div class="profe" id="profe-inicio"></div></div>
+      <div class="globo" id="globo-inicio">¡Hola! Soy la Profe Mishi. ¿Jugamos?</div>
+    </div>
+  </main>
+
+  <section class="pasos ancho">
+    <h2>¿Cómo se juega?</h2>
+    <ol>
+      <li><span class="paso-num" style="--c:var(--verde)">1</span><div><b>Aprendé</b><p>Cada nivel empieza con una mini lección y un ejemplo.</p></div></li>
+      <li><span class="paso-num" style="--c:var(--azul)">2</span><div><b>Respondé</b><p>Contestá 8 preguntas. Con 6 correctas pasás de nivel.</p></div></li>
+      <li><span class="paso-num" style="--c:var(--rosa)">3</span><div><b>Avanzá</b><p>Ganá hasta 3 estrellas y desbloqueá mundos nuevos.</p></div></li>
+    </ol>
+  </section>
 </section>
 
 <!-- 2. MAPA DE NIVELES -->
 <section id="mapa" class="pantalla">
-  <div class="cabecera">
-    <button class="boton blanco chico" onclick="mostrarPantalla('inicio')">🏠 Inicio</button>
-    <h2 id="saludo-mapa">Elegí un nivel</h2>
-    <span class="chip" id="total-estrellas"></span>
+  <header class="encabezado">
+    <button class="boton-icono" onclick="mostrarPantalla('inicio')" aria-label="Inicio"><svg class="icono"><use href="#i-casa"/></svg></button>
+    <div class="encabezado-titulo"><h2>Mapa de niveles</h2><p id="saludo-mapa"></p></div>
+    <button class="boton-icono boton-sonido" onclick="cambiarSonido()" aria-label="Sonido"></button>
+  </header>
+  <div class="tarjeta resumen ancho">
+    <div class="resumen-datos">
+      <div class="dato"><b id="dato-niveles"></b><span>niveles completados</span></div>
+      <div class="dato"><b id="dato-estrellas"></b><span>estrellas</span></div>
+    </div>
+    <div class="barra-progreso"><span id="barra-total" style="width:0"></span></div>
+    <div class="leyenda">
+      <span><i style="background:var(--verde)"></i>Completado</span>
+      <span><i style="background:#fff;border:3px solid var(--primario)"></i>Para jugar ahora</span>
+      <span><i style="background:#e3e6ef"></i>Bloqueado</span>
+    </div>
   </div>
-  <div class="mundos" id="mundos"></div>
+  <div class="mundos ancho" id="mundos"></div>
 </section>
 
 <!-- 3. LECCIÓN (explica el tema antes de cada nivel) -->
 <section id="leccion" class="pantalla">
-  <div class="tarjeta">
-    <div class="leccion-emoji" id="leccion-emoji"></div>
-    <p class="etiqueta" id="leccion-nivel"></p>
-    <h2 id="leccion-titulo"></h2>
-    <p class="leccion-texto" id="leccion-texto"></p>
-    <div class="ejemplo" id="leccion-ejemplo"></div>
-    <p class="nota" id="leccion-nota"></p>
-    <div class="fila-botones">
-      <button class="boton blanco chico" onclick="mostrarPantalla('mapa')">⬅ Volver</button>
-      <button class="boton verde" onclick="empezarNivel()">¡Empezar! 🚀</button>
+  <div class="tarjeta leccion entrar">
+    <div class="leccion-cabecera">
+      <div class="leccion-emoji" id="leccion-emoji"></div>
+      <p class="etiqueta" id="leccion-nivel"></p>
+      <h2 id="leccion-titulo"></h2>
+    </div>
+    <div class="leccion-cuerpo">
+      <p class="leccion-texto" id="leccion-texto"></p>
+      <div class="ejemplo"><small>Ejemplo</small><span id="leccion-ejemplo"></span></div>
+      <ul class="datos-nivel">
+        <li class="chip">📝 8 preguntas</li>
+        <li class="chip">🎯 6 correctas para pasar</li>
+        <li class="chip" id="leccion-modo"></li>
+      </ul>
+    </div>
+    <div class="leccion-botones">
+      <button class="boton secundario" onclick="mostrarPantalla('mapa')"><svg class="icono"><use href="#i-atras"/></svg>Mapa</button>
+      <button class="boton mundo grande" id="boton-empezar" onclick="empezarNivel()">Empezar <svg class="icono"><use href="#i-play"/></svg></button>
     </div>
   </div>
 </section>
 
 <!-- 4. JUEGO -->
 <section id="juego" class="pantalla">
-  <div class="barra">
-    <button class="boton-salir" onclick="salirDelNivel()" title="Salir">✖</button>
-    <div class="nombre-nivel" id="juego-nivel"></div>
+  <div class="juego-barra">
+    <button class="boton-icono" onclick="salirDelNivel()" aria-label="Salir"><svg class="icono"><use href="#i-cerrar"/></svg></button>
+    <div class="segmentos" id="segmentos"></div>
     <span class="chip racha oculto" id="racha"></span>
   </div>
-  <div class="puntitos" id="puntitos"></div>
+  <p class="juego-titulo" id="juego-titulo"></p>
   <div class="ayudante">
     <div class="profe" id="profe-juego"></div>
     <div class="globo" id="globo-juego"></div>
@@ -298,26 +520,40 @@ h2 { font-size: 1.9rem; line-height: 1.1; }
     <p class="enunciado oculto" id="enunciado"></p>
     <div class="dibujo oculto" id="dibujo"></div>
     <div id="cuenta"></div>
-    <div id="respuestas" style="width:100%;display:flex;justify-content:center"></div>
-    <div class="respuesta-info oculto" id="respuesta-info"></div>
+    <div class="respuestas" id="respuestas"></div>
+  </div>
+  <div class="panel-respuesta" id="panel-respuesta">
+    <div class="panel-contenido">
+      <div class="panel-icono" id="panel-icono"></div>
+      <div class="panel-texto"><b id="panel-titulo"></b><p id="panel-explicacion"></p></div>
+      <button class="boton" id="panel-boton" onclick="siguiente()"></button>
+    </div>
   </div>
 </section>
 
 <!-- 5. RESULTADO DEL NIVEL -->
 <section id="resultado" class="pantalla">
-  <div class="tarjeta">
-    <div class="profe grande" id="profe-resultado"></div>
-    <h2 id="resultado-titulo"></h2>
-    <div class="estrellas-grandes" id="resultado-estrellas"></div>
-    <p class="resultado-texto" id="resultado-texto"></p>
-    <p class="nuevo-mundo oculto" id="nuevo-mundo"></p>
-    <div class="fila-botones" id="resultado-botones"></div>
+  <div class="tarjeta resultado entrar">
+    <div class="resultado-cabecera"><div class="profe" id="profe-resultado"></div></div>
+    <div class="resultado-cuerpo">
+      <p class="etiqueta" id="resultado-nivel"></p>
+      <h2 id="resultado-titulo"></h2>
+      <div class="estrellas-grandes" id="resultado-estrellas"></div>
+      <div class="estadisticas">
+        <div><b id="est-correctas"></b><span>Correctas</span></div>
+        <div><b id="est-precision"></b><span>Precisión</span></div>
+        <div><b id="est-racha"></b><span>Mejor racha</span></div>
+      </div>
+      <p class="resultado-texto" id="resultado-texto"></p>
+      <p class="nuevo-mundo oculto" id="nuevo-mundo"></p>
+      <div class="fila-botones" id="resultado-botones"></div>
+    </div>
   </div>
 </section>
 
 <!-- 6. FINAL: DIPLOMA -->
-<section id="final" class="pantalla">
-  <div class="profe grande" id="profe-final"></div>
+<section id="final" class="pantalla" style="justify-content:center">
+  <div class="profe" id="profe-final" style="width:150px"></div>
   <div class="diploma">
     <div class="sello">🏅</div>
     <h2>Diploma de Matemágica</h2>
@@ -325,11 +561,11 @@ h2 { font-size: 1.9rem; line-height: 1.1; }
     <p class="quien" id="diploma-nombre"></p>
     <p>por superar los 10 niveles de sumas, restas y multiplicaciones.</p>
     <p id="diploma-estrellas"></p>
-    <p class="nota" id="diploma-fecha"></p>
+    <p class="para" id="diploma-fecha"></p>
   </div>
   <div class="fila-botones">
-    <button class="boton amarillo" onclick="window.print()">🖨️ Imprimir diploma</button>
-    <button class="boton celeste" onclick="mostrarPantalla('mapa')">🗺️ Volver al mapa</button>
+    <button class="boton" onclick="window.print()">🖨️ Imprimir diploma</button>
+    <button class="boton secundario" onclick="mostrarPantalla('mapa')">Volver al mapa</button>
   </div>
 </section>
 
@@ -341,7 +577,7 @@ h2 { font-size: 1.9rem; line-height: 1.1; }
    3.  Progreso guardado
    4.  Sonidos
    5.  Papelitos de colores (confeti) y festejos
-   6.  La Profe Mishi (dibujo)
+   6.  La Profe Mishi (dibujo) e íconos
    7.  Ayudas: azar, mezclar, opciones
    8.  Cómo se crean las preguntas de cada nivel
    9.  Pantallas: inicio, mapa y lección
@@ -354,9 +590,9 @@ h2 { font-size: 1.9rem; line-height: 1.1; }
 /* ---------- 1. MUNDOS Y NIVELES ----------
    Los niveles van de lo más fácil a lo más difícil. La multiplicación está al final. */
 const MUNDOS = [
-  { nombre: 'Mundo de las Sumas', emoji: '➕', color: '#22b35e', claro: '#d3f8e2', fondo: 'linear-gradient(160deg, #8ff0b4, #ffe27a)' },
-  { nombre: 'Mundo de las Restas', emoji: '➖', color: '#2f80ff', claro: '#d6e8ff', fondo: 'linear-gradient(160deg, #8cc8ff, #9ff5dc)' },
-  { nombre: 'Mundo de las Multiplicaciones', emoji: '✖️', color: '#8a4dff', claro: '#eadfff', fondo: 'linear-gradient(160deg, #c3a6ff, #ffa6d2)' },
+  { nombre: 'Sumas', nombreLargo: 'Mundo de las Sumas', simbolo: '+', color: '#16b364', oscuro: '#0e8f4f', claro: '#e3f8ec' },
+  { nombre: 'Restas', nombreLargo: 'Mundo de las Restas', simbolo: '−', color: '#2e7cf6', oscuro: '#1f5fcc', claro: '#e5efff' },
+  { nombre: 'Multiplicaciones', nombreLargo: 'Mundo de las Multiplicaciones', simbolo: '×', color: '#f0487e', oscuro: '#c92d62', claro: '#ffe6ef' },
 ];
 
 // modo: 'opciones' = elegir entre 4 respuestas · 'teclado' = escribir el número
@@ -434,7 +670,9 @@ const progreso = { estrellas: Array(NIVELES.length).fill(0), nombre: '', sonido:
 try { Object.assign(progreso, JSON.parse(localStorage.getItem('matemagica')) || {}); } catch (error) {}
 function guardar() { try { localStorage.setItem('matemagica', JSON.stringify(progreso)); } catch (error) {} }
 const totalEstrellas = () => progreso.estrellas.reduce((a, b) => a + b, 0);
+const nivelesCompletos = () => progreso.estrellas.filter(e => e > 0).length;
 const nivelAbierto = n => n === 0 || progreso.estrellas[n - 1] > 0;
+const estadoNivel = n => progreso.estrellas[n] > 0 ? 'completado' : nivelAbierto(n) ? 'disponible' : 'bloqueado';
 
 
 /* ---------- 4. SONIDOS (los fabrica el navegador) ---------- */
@@ -466,16 +704,17 @@ function sonar(nombre) {
 function cambiarSonido() {
   progreso.sonido = !progreso.sonido;
   guardar(); pintarBotonSonido(); sonar('boton');
+  avisar(progreso.sonido ? '🔊 Sonido activado' : '🔇 Sonido apagado');
 }
 function pintarBotonSonido() {
-  document.getElementById('boton-sonido').textContent = progreso.sonido ? '🔊 Sonido: sí' : '🔇 Sonido: no';
+  document.querySelectorAll('.boton-sonido').forEach(b => b.innerHTML = icono(progreso.sonido ? 'sonido' : 'silencio'));
 }
 
 
 /* ---------- 5. PAPELITOS DE COLORES (CONFETI) Y FESTEJOS ----------
    Dibujamos los papelitos en un <canvas> que está encima de todo. */
 const lienzo = document.getElementById('confeti'), pincel = lienzo.getContext('2d');
-const COLORES = ['#ff4d6d', '#ff8c1a', '#ffd23f', '#22b35e', '#2fa8ff', '#8a4dff', '#ff4fa3'];
+const COLORES = ['#ef4461', '#ff8a1f', '#ffc531', '#16b364', '#2e7cf6', '#6d4aff', '#f0487e'];
 const CARTELES = ['¡Felicitaciones!', '¡Sos un genio!', '¡Pasaste de nivel!', '¡Bravo!', '¡Genial!', '¡Matemágico!'];
 let papelitos = [], lloviendoHasta = 0, animandoConfeti = false;
 
@@ -511,8 +750,7 @@ function explosionDesde(elemento, cantidad) {
 // Lluvia de papelitos y carteles con mensajes (cuando pasás de nivel)
 function lluvia(segundos = 4) {
   lloviendoHasta = performance.now() + segundos * 1000;
-  const carteles = 9;
-  for (let i = 0; i < carteles; i++) {
+  for (let i = 0; i < 9; i++) {
     setTimeout(() => {
       if (performance.now() < lloviendoHasta) nuevoPapelito(Math.random() * innerWidth, -40, (Math.random() - 0.5) * 1.5, 1, CARTELES[i % CARTELES.length]);
     }, i * 380);
@@ -576,7 +814,7 @@ function pararFestejo() {
 // Mensajes gigantes en el centro de la pantalla
 function festejar(mensajes) {
   const festejo = document.getElementById('festejo');
-  festejo.innerHTML = mensajes.map(m => `<span>${m}</span>`).join('');
+  festejo.replaceChildren(...mensajes.map(m => { const s = document.createElement('span'); s.textContent = m; return s; }));
   festejo.classList.remove('oculto', 'salir');
   clearTimeout(festejar.reloj);
   festejar.reloj = setTimeout(() => {
@@ -585,8 +823,17 @@ function festejar(mensajes) {
   }, 3600);
 }
 
+// Avisito abajo de la pantalla
+function avisar(texto) {
+  const aviso = document.getElementById('aviso');
+  aviso.textContent = texto;
+  aviso.classList.add('visible');
+  clearTimeout(avisar.reloj);
+  avisar.reloj = setTimeout(() => aviso.classList.remove('visible'), 2200);
+}
 
-/* ---------- 6. LA PROFE MISHI (dibujo SVG) ----------
+
+/* ---------- 6. LA PROFE MISHI (dibujo SVG) E ÍCONOS ----------
    cara: 'feliz' (ojos abiertos) o 'contenta' (ojitos cerrados). */
 function profeMishi(cara = 'feliz') {
   const borde = '#6b4a3a', naranja = '#ffb26b', rayas = '#f08a3c';
@@ -612,12 +859,17 @@ function profeMishi(cara = 'feliz') {
     <path d="M46.5 54 H53.5 L50 57.5 Z" fill="#ff7aa2" stroke="#ff7aa2" stroke-width="1.5" stroke-linejoin="round"/>
     <path d="M50 58 Q47 63 43 60.5 M50 58 Q53 63 57 60.5" fill="none" stroke="${borde}" stroke-width="2" stroke-linecap="round"/>
     <path d="M21 53 L7 50 M21 57 L7 60 M79 53 L93 50 M79 57 L93 60" stroke="${borde}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
-    <!-- birrete de profe -->
     <path d="M30 17 Q50 24 70 17 L70 9 L30 9 Z" fill="#2b2d42"/>
     <path d="M16 6 L50 -6 L84 6 L50 18 Z" fill="#3a3d5c" stroke="#2b2d42" stroke-width="2" stroke-linejoin="round"/>
-    <path d="M50 6 L80 9 L80 22" fill="none" stroke="#ffd23f" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="80" cy="24" r="3.5" fill="#ffd23f"/>
+    <path d="M50 6 L80 9 L80 22" fill="none" stroke="#ffc531" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="80" cy="24" r="3.5" fill="#ffc531"/>
   </svg>`;
+}
+const icono = nombre => `<svg class="icono" aria-hidden="true"><use href="#i-${nombre}"/></svg>`;
+function estrellasHtml(cantidad) {
+  let html = '';
+  for (let i = 0; i < 3; i++) html += `<svg class="estrella ${i < cantidad ? 'llena' : ''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella"/></svg>`;
+  return html;
 }
 
 
@@ -767,22 +1019,34 @@ function armarPreguntas(nivel) {
 
 
 /* ---------- 9. PANTALLAS: INICIO, MAPA Y LECCIÓN ---------- */
+const PANTALLAS_DE_MUNDO = ['leccion', 'juego', 'resultado'];   // se pintan con el color del mundo
+
 function mostrarPantalla(id) {
   if (id !== 'resultado' && id !== 'final') pararFestejo();   // el festejo no sigue en otras pantallas
+  if (id !== 'juego') document.getElementById('panel-respuesta').classList.remove('visible');
   document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
   document.getElementById(id).classList.add('activa');
+  document.body.classList.toggle('en-mundo', PANTALLAS_DE_MUNDO.includes(id));
   window.scrollTo(0, 0);
+  if (id === 'inicio') actualizarInicio();
   if (id === 'mapa') dibujarMapa();
-  if (id === 'inicio' || id === 'mapa') document.body.style.background = '';
+}
+
+function actualizarInicio() {
+  const hayProgreso = totalEstrellas() > 0;
+  document.getElementById('boton-jugar').innerHTML = (hayProgreso ? 'Continuar' : '¡A jugar!') + icono('play');
+  document.getElementById('progreso-inicio').classList.toggle('oculto', !hayProgreso);
+  document.getElementById('progreso-inicio-texto').textContent = `${nivelesCompletos()} de ${NIVELES.length} niveles · ⭐ ${totalEstrellas()}`;
+  document.getElementById('progreso-inicio-barra').style.width = (nivelesCompletos() / NIVELES.length * 100) + '%';
 }
 
 function saludar() {
   sonar('racha');
   document.getElementById('globo-inicio').textContent = alAzar([
     '¡Miau! ¿Sabías que 2 + 2 = 4? ¡Y 2 × 2 también!', '¡Me encantan los números!',
-    '¡Prrr! Practicar todos los días te hace un genio.', '¿Cuántas patas tienen 2 gatos? ¡8! 🐾',
+    '¡Practicar un poquito todos los días te hace un genio!', '¿Cuántas patas tienen 2 gatos? ¡8! 🐾',
   ]);
-  explosionDesde(document.getElementById('profe-inicio'), 25);
+  explosionDesde(document.querySelector('.profe-centro'), 25);
 }
 
 function irAlMapa() {
@@ -793,50 +1057,63 @@ function irAlMapa() {
 }
 
 function dibujarMapa() {
-  document.getElementById('saludo-mapa').textContent = progreso.nombre ? `¡Hola, ${progreso.nombre}!` : 'Elegí un nivel';
-  document.getElementById('total-estrellas').textContent = `⭐ ${totalEstrellas()} / ${NIVELES.length * 3}`;
+  document.getElementById('saludo-mapa').textContent = progreso.nombre ? `¡Vamos, ${progreso.nombre}!` : 'Elegí el próximo nivel';
+  document.getElementById('dato-niveles').textContent = `${nivelesCompletos()}/${NIVELES.length}`;
+  document.getElementById('dato-estrellas').textContent = `${totalEstrellas()}/${NIVELES.length * 3}`;
+  document.getElementById('barra-total').style.width = (nivelesCompletos() / NIVELES.length * 100) + '%';
+
   const contenedor = document.getElementById('mundos');
   contenedor.innerHTML = '';
-  const siguiente = progreso.estrellas.findIndex(e => e === 0);
   MUNDOS.forEach((mundo, m) => {
-    const caja = document.createElement('div');
-    const primero = NIVELES.findIndex(n => n.mundo === m);
-    caja.className = 'mundo' + (nivelAbierto(primero) ? '' : ' bloqueado');
-    caja.style.background = mundo.fondo;
-    caja.innerHTML = `<h3>${mundo.emoji} ${mundo.nombre}</h3><div class="niveles"></div>`;
-    NIVELES.forEach((nivel, i) => {
-      if (nivel.mundo !== m) return;
-      const abierto = nivelAbierto(i);
-      const boton = document.createElement('button');
-      boton.className = 'boton-nivel' + (abierto ? '' : ' cerrado') + (i === siguiente ? ' siguiente' : '');
-      boton.style.setProperty('--color', mundo.color);
-      boton.innerHTML = `
-        <span class="numero">${abierto ? i + 1 : '🔒'}</span>
-        <span class="nombre">${nivel.emoji} ${nivel.nombre}</span>
-        <span class="estrellas">${estrellasHtml(progreso.estrellas[i])}</span>
-        ${i === siguiente ? `<span class="aca">${profeMishi()}</span>` : ''}`;
-      boton.onclick = () => {
-        if (abierto) { sonar('boton'); abrirLeccion(i); }
-        else { sonar('mal'); sacudir(boton); }
+    const indices = NIVELES.map((n, i) => i).filter(i => NIVELES[i].mundo === m);
+    const abierto = nivelAbierto(indices[0]);
+    const completos = indices.filter(i => progreso.estrellas[i] > 0).length;
+    const estrellas = indices.reduce((suma, i) => suma + progreso.estrellas[i], 0);
+
+    const caja = document.createElement('article');
+    caja.className = 'mundo' + (abierto ? '' : ' bloqueado');
+    caja.style.cssText = `--color:${mundo.color};--oscuro:${mundo.oscuro};--claro:${mundo.claro}`;
+    caja.innerHTML = `
+      <header class="mundo-cabecera" data-simbolo="${mundo.simbolo}">
+        <div class="mundo-icono">${abierto ? mundo.simbolo : icono('candado')}</div>
+        <div><p>Mundo ${m + 1} · Niveles ${indices[0] + 1} a ${indices[indices.length - 1] + 1}</p><h3>${mundo.nombre}</h3></div>
+      </header>
+      <div class="mundo-meta"><span>${completos} de ${indices.length} niveles</span><span>⭐ ${estrellas}/${indices.length * 3}</span></div>
+      <div class="barra-progreso"><span style="width:${completos / indices.length * 100}%;--c:${mundo.color}"></span></div>
+      ${abierto ? '' : `<p class="mundo-aviso">${icono('candado')}Completá el ${MUNDOS[m - 1].nombreLargo} para entrar.</p>`}
+      <ol class="camino"></ol>`;
+
+    indices.forEach(i => {
+      const nivel = NIVELES[i], estado = estadoNivel(i);
+      const fila = document.createElement('li');
+      fila.className = 'paso ' + estado;
+      const nodo = estado === 'completado' ? icono('check') : estado === 'bloqueado' ? icono('candado') : i + 1;
+      const final = estado === 'completado' ? `<span class="estrellas">${estrellasHtml(progreso.estrellas[i])}</span>`
+                  : estado === 'disponible' ? `<span class="estado-jugar">Jugar ${icono('play')}</span>` : '';
+      fila.innerHTML = `
+        <button aria-label="Nivel ${i + 1}: ${nivel.nombre}">
+          <span class="nodo">${nodo}</span>
+          <span class="info"><b>${nivel.nombre}</b><small>Nivel ${i + 1} · ${nivel.modo === 'teclado' ? 'Escribís la respuesta' : 'Elegís la respuesta'}</small></span>
+          <span class="estado">${final}</span>
+        </button>`;
+      fila.querySelector('button').onclick = () => {
+        if (estado === 'bloqueado') {
+          sonar('mal'); sacudir(fila);
+          avisar(`🔒 Primero completá el nivel ${i}.`);
+        } else { sonar('boton'); abrirLeccion(i); }
       };
-      caja.querySelector('.niveles').append(boton);
+      caja.querySelector('.camino').append(fila);
     });
     contenedor.append(caja);
   });
 }
 
-function estrellasHtml(cantidad) {
-  let html = '';
-  for (let i = 0; i < 3; i++) html += `<span class="${i < cantidad ? '' : 'apagada'}">⭐</span>`;
-  return html;
-}
-
 // Pinta la pantalla con los colores del mundo del nivel.
 function usarColoresDelMundo(nivel) {
-  const mundo = MUNDOS[nivel.mundo];
-  document.documentElement.style.setProperty('--mundo', mundo.color);
-  document.documentElement.style.setProperty('--mundo-claro', mundo.claro);
-  document.body.style.background = mundo.fondo;
+  const mundo = MUNDOS[nivel.mundo], raiz = document.documentElement.style;
+  raiz.setProperty('--mundo', mundo.color);
+  raiz.setProperty('--mundo-oscuro', mundo.oscuro);
+  raiz.setProperty('--mundo-claro', mundo.claro);
 }
 
 function abrirLeccion(n) {
@@ -844,19 +1121,17 @@ function abrirLeccion(n) {
   const nivel = NIVELES[n];
   usarColoresDelMundo(nivel);
   document.getElementById('leccion-emoji').textContent = nivel.emoji;
-  document.getElementById('leccion-nivel').textContent = `Nivel ${n + 1} · ${nivel.nombre}`;
+  document.getElementById('leccion-nivel').textContent = `${MUNDOS[nivel.mundo].nombre} · Nivel ${n + 1}`;
   document.getElementById('leccion-titulo').textContent = nivel.leccion.titulo;
   document.getElementById('leccion-texto').textContent = nivel.leccion.texto;
   document.getElementById('leccion-ejemplo').textContent = nivel.leccion.ejemplo;
-  document.getElementById('leccion-nota').textContent =
-    `${PREGUNTAS_POR_NIVEL} preguntas · Necesitás ${PARA_PASAR} bien para pasar · ` +
-    (nivel.modo === 'teclado' ? '✍️ Escribís la respuesta' : '👆 Elegís la respuesta');
+  document.getElementById('leccion-modo').textContent = nivel.modo === 'teclado' ? '✍️ Escribís la respuesta' : '👆 Elegís la respuesta';
   mostrarPantalla('leccion');
 }
 
 
 /* ---------- 10. EL JUEGO: MOSTRAR, RESPONDER, SIGUIENTE ---------- */
-const juego = { nivel: 0, preguntas: [], indice: 0, correctas: 0, racha: 0, resultados: [], escrito: '', respondida: false };
+const juego = { nivel: 0, preguntas: [], indice: 0, correctas: 0, racha: 0, mejorRacha: 0, resultados: [], escrito: '', respondida: false };
 const FRASES_BIEN = ['¡Muy bien!', '¡Genial!', '¡Excelente!', '¡Sos un genio!', '¡Bárbaro!', '¡Impecable!', '¡Matemágico! ✨'];
 const FRASES_MAL = ['¡Casi! Mirá cómo se hace.', 'No pasa nada, ¡así se aprende!', '¡Ups! Fijate en la explicación.'];
 const FRASES_PENSAR = ['¡Vos podés!', 'Pensá con calma… 🤔', 'Contá con los dedos si querés.', '¡Dale, que sale!'];
@@ -864,8 +1139,8 @@ const FRASES_PENSAR = ['¡Vos podés!', 'Pensá con calma… 🤔', 'Contá con 
 function empezarNivel() {
   sonar('boton');
   const nivel = NIVELES[juego.nivel];
-  Object.assign(juego, { preguntas: armarPreguntas(nivel), indice: 0, correctas: 0, racha: 0, resultados: [] });
-  document.getElementById('juego-nivel').textContent = `Nivel ${juego.nivel + 1} · ${nivel.nombre}`;
+  Object.assign(juego, { preguntas: armarPreguntas(nivel), indice: 0, correctas: 0, racha: 0, mejorRacha: 0, resultados: [] });
+  document.getElementById('juego-titulo').innerHTML = `<span>${MUNDOS[nivel.mundo].nombre}</span> · Nivel ${juego.nivel + 1}: ${nivel.nombre}`;
   document.getElementById('racha').classList.add('oculto');
   mostrarPantalla('juego');
   mostrarPregunta();
@@ -878,8 +1153,8 @@ function decir(texto, cara = 'feliz') {
   document.getElementById('profe-juego').innerHTML = profeMishi(cara);
 }
 
-function dibujarPuntitos() {
-  document.getElementById('puntitos').innerHTML = juego.preguntas.map((_, i) => {
+function dibujarSegmentos() {
+  document.getElementById('segmentos').innerHTML = juego.preguntas.map((_, i) => {
     const r = juego.resultados[i];
     return `<span class="${r === true ? 'bien' : r === false ? 'mal' : i === juego.indice ? 'actual' : ''}"></span>`;
   }).join('');
@@ -889,7 +1164,8 @@ function mostrarPregunta() {
   const q = juego.preguntas[juego.indice], nivel = NIVELES[juego.nivel];
   juego.respondida = false;
   juego.escrito = '';
-  dibujarPuntitos();
+  dibujarSegmentos();
+  document.getElementById('panel-respuesta').classList.remove('visible');
   decir(q.tipo === 'saber' ? '¡Pregunta para saber más! 📚' : alAzar(FRASES_PENSAR));
 
   const enunciado = document.getElementById('enunciado'), dibujo = document.getElementById('dibujo');
@@ -897,13 +1173,12 @@ function mostrarPregunta() {
   enunciado.classList.toggle('oculto', !q.enunciado);
   dibujo.innerHTML = q.dibujo || '';
   dibujo.classList.toggle('oculto', !q.dibujo);
-  document.getElementById('respuesta-info').classList.add('oculto');
 
   const cuenta = document.getElementById('cuenta'), respuestas = document.getElementById('respuestas');
   if (q.tipo === 'saber') {
-    cuenta.innerHTML = `<p class="texto-saber"></p>`;
-    cuenta.firstChild.textContent = q.texto;
-    respuestas.innerHTML = `<div class="opciones">${q.opciones.map(o => `<button class="opcion texto"></button>`).join('')}</div>`;
+    cuenta.innerHTML = `<div style="text-align:center"><span class="saber-etiqueta">📚 Para saber más</span></div><p class="texto-saber" style="margin-top:10px"></p>`;
+    cuenta.querySelector('.texto-saber').textContent = q.texto;
+    respuestas.innerHTML = `<div class="opciones">${q.opciones.map(() => `<button class="opcion texto"></button>`).join('')}</div>`;
     respuestas.querySelectorAll('.opcion').forEach((b, i) => { b.textContent = q.opciones[i]; b.onclick = () => responder(q.opciones[i], b); });
   } else if (nivel.modo === 'opciones') {
     cuenta.innerHTML = cuentaHtml(q, '?');
@@ -913,12 +1188,12 @@ function mostrarPregunta() {
   } else {
     cuenta.innerHTML = cuentaHtml(q, '&nbsp;');
     respuestas.innerHTML = `<div class="teclado">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="tecla" data-tecla="${n}">${n}</button>`).join('')}
-      <button class="tecla borrar" data-tecla="borrar">⌫</button><button class="tecla" data-tecla="0">0</button>
-      <button class="tecla listo" data-tecla="listo">✔</button></div>`;
+      <button class="tecla borrar" data-tecla="borrar" aria-label="Borrar">${icono('borrar')}</button><button class="tecla" data-tecla="0">0</button>
+      <button class="tecla listo" data-tecla="listo" aria-label="Comprobar">${icono('check')}</button></div>`;
     respuestas.querySelectorAll('.tecla').forEach(b => b.onclick = () => tocarTecla(b.dataset.tecla));
   }
   const tarjeta = document.getElementById('tarjeta-pregunta');
-  tarjeta.classList.remove('saltito'); void tarjeta.offsetWidth; tarjeta.classList.add('saltito');
+  tarjeta.classList.remove('entrar'); void tarjeta.offsetWidth; tarjeta.classList.add('entrar');
 }
 
 // La cuenta grande: "7 + 5 = ?" (los signos van en color)
@@ -945,65 +1220,63 @@ function responder(valor, elemento) {
   juego.respondida = true;
   const q = juego.preguntas[juego.indice], acerto = valor === q.respuesta;
   juego.resultados[juego.indice] = acerto;
-  dibujarPuntitos();
+  dibujarSegmentos();
 
-  // Marcamos las opciones: la correcta en verde, las demás en gris.
+  // Marcamos las opciones: la correcta en verde y la elegida (si estaba mal) en rojo.
   document.querySelectorAll('#respuestas .opcion').forEach(b => {
     b.disabled = true;
-    const texto = b.textContent;
-    if (texto === String(q.respuesta)) b.classList.add('correcta');
+    if (b.textContent === String(q.respuesta)) b.classList.add('correcta');
     else if (b === elemento) b.classList.add('incorrecta');
   });
   document.querySelectorAll('#respuestas .tecla').forEach(b => b.disabled = true);
   if (q.tipo === 'cuenta') document.getElementById('cajita').textContent = acerto ? valor : q.respuesta;
 
-  const info = document.getElementById('respuesta-info');
-  info.className = 'respuesta-info ' + (acerto ? 'bien' : 'mal');
+  let titulo;
   if (acerto) {
     juego.correctas++;
     juego.racha++;
-    const frase = alAzar(FRASES_BIEN) + (progreso.nombre && Math.random() < 0.4 ? ` ¡Bien, ${progreso.nombre}!` : '');
-    decir(frase, 'contenta');
+    juego.mejorRacha = Math.max(juego.mejorRacha, juego.racha);
+    titulo = alAzar(FRASES_BIEN);
+    decir(titulo + (progreso.nombre && Math.random() < 0.4 ? ` ¡Bien, ${progreso.nombre}!` : ''), 'contenta');
     sonar(juego.racha % 3 === 0 ? 'racha' : 'bien');
     explosionDesde(elemento, juego.racha % 3 === 0 ? 70 : 35);
     if (juego.racha >= 3) {
       const racha = document.getElementById('racha');
-      racha.textContent = `🔥 ${juego.racha} seguidas`;
+      racha.textContent = `🔥 ${juego.racha}`;
       racha.classList.remove('oculto');
       if (juego.racha % 3 === 0) decir(juego.racha >= 6 ? '¡Imparable! 🔥🔥🔥' : `¡Racha de ${juego.racha}! 🔥`, 'contenta');
     }
-    info.innerHTML = `<b>✅ ¡Correcto!</b>`;
   } else {
     juego.racha = 0;
     document.getElementById('racha').classList.add('oculto');
+    titulo = `La respuesta es ${q.respuesta}`;
     decir(alAzar(FRASES_MAL));
     sonar('mal');
     sacudir(document.getElementById('tarjeta-pregunta'));
-    info.innerHTML = `<b>La respuesta correcta es: <span></span></b>`;
-    info.querySelector('span').textContent = q.respuesta;
   }
-  // Explicación: siempre en las de teoría, y en las cuentas cuando te equivocás.
-  if (!acerto || q.tipo === 'saber') {
-    const exp = document.createElement('p');
-    exp.className = 'explicacion';
-    exp.textContent = '💡 ' + q.explicacion;
-    info.append(exp);
-  }
+
+  // Panel de abajo: la explicación aparece siempre en las de teoría, y en las cuentas cuando te equivocás.
   const ultima = juego.indice === juego.preguntas.length - 1;
-  const boton = document.createElement('button');
-  boton.className = 'boton verde';
-  boton.textContent = ultima ? 'Ver resultado 🏁' : 'Siguiente ➜';
-  boton.onclick = siguiente;
-  info.append(boton);
-  info.classList.remove('oculto');
+  const panel = document.getElementById('panel-respuesta');
+  panel.className = 'panel-respuesta visible ' + (acerto ? 'bien' : 'mal');
+  document.getElementById('panel-icono').innerHTML = icono(acerto ? 'check' : 'cerrar');
+  document.getElementById('panel-titulo').textContent = titulo;
+  const explicacion = document.getElementById('panel-explicacion');
+  explicacion.textContent = (!acerto || q.tipo === 'saber') ? '💡 ' + q.explicacion : '';
+  explicacion.classList.toggle('oculto', explicacion.textContent === '');
+  const boton = document.getElementById('panel-boton');
+  boton.className = 'boton ' + (acerto ? 'verde' : 'rojo');
+  boton.textContent = ultima ? 'Ver resultado' : acerto ? 'Continuar' : 'Entendido';
+
   // Si acertaste una cuenta, pasamos solos a la siguiente después de un ratito.
   if (acerto && q.tipo === 'cuenta' && !ultima) {
     const esta = juego.indice;
-    setTimeout(() => { if (juego.indice === esta && juego.respondida && document.getElementById('juego').classList.contains('activa')) siguiente(); }, 1400);
+    setTimeout(() => { if (juego.indice === esta && juego.respondida && document.getElementById('juego').classList.contains('activa')) siguiente(); }, 1500);
   }
 }
 
 function siguiente() {
+  if (!juego.respondida) return;
   sonar('boton');
   juego.indice++;
   if (juego.indice < juego.preguntas.length) mostrarPregunta();
@@ -1027,36 +1300,41 @@ addEventListener('keydown', e => {
 
 /* ---------- 11. FIN DEL NIVEL Y DIPLOMA ---------- */
 function terminarNivel() {
-  const n = juego.nivel, paso = juego.correctas >= PARA_PASAR;
+  const n = juego.nivel, nivel = NIVELES[n], paso = juego.correctas >= PARA_PASAR;
   const estrellas = juego.correctas === 8 ? 3 : juego.correctas === 7 ? 2 : paso ? 1 : 0;
-  const mundoAntes = NIVELES.filter((_, i) => nivelAbierto(i)).map(x => x.mundo).pop();
+  const siguienteAbiertoAntes = n + 1 < NIVELES.length && nivelAbierto(n + 1);
   progreso.estrellas[n] = Math.max(progreso.estrellas[n], estrellas);
   guardar();
 
   document.getElementById('profe-resultado').innerHTML = profeMishi(paso ? 'contenta' : 'feliz');
+  document.getElementById('resultado-nivel').textContent = `Nivel ${n + 1} · ${nivel.nombre}`;
   document.getElementById('resultado-titulo').textContent = paso ? '¡Nivel superado!' : '¡Casi lo lográs!';
   document.getElementById('resultado-estrellas').innerHTML = estrellasHtml(estrellas);
-  document.querySelectorAll('#resultado-estrellas span').forEach((s, i) => s.style.animationDelay = (0.6 + i * 0.35) + 's');
+  document.querySelectorAll('#resultado-estrellas .estrella').forEach((s, i) => s.style.animationDelay = (0.6 + i * 0.35) + 's');
+  document.getElementById('est-correctas').textContent = `${juego.correctas}/${PREGUNTAS_POR_NIVEL}`;
+  document.getElementById('est-precision').textContent = Math.round(juego.correctas / PREGUNTAS_POR_NIVEL * 100) + '%';
+  document.getElementById('est-racha').textContent = juego.mejorRacha;
   document.getElementById('resultado-texto').textContent = paso
-    ? `Respondiste bien ${juego.correctas} de ${PREGUNTAS_POR_NIVEL} preguntas.`
-    : `Respondiste bien ${juego.correctas} de ${PREGUNTAS_POR_NIVEL}. Necesitás ${PARA_PASAR} para pasar. ¡Vos podés, intentalo de nuevo!`;
+    ? (estrellas === 3 ? '¡Perfecto! Respondiste todo bien.' : 'Repetilo cuando quieras para ganar las 3 estrellas.')
+    : `Necesitás ${PARA_PASAR} respuestas correctas para pasar. ¡Vos podés, intentalo de nuevo!`;
 
   // ¿Se abrió un mundo nuevo?
   const nuevo = document.getElementById('nuevo-mundo');
-  const siguienteNivel = NIVELES[n + 1];
-  const abreMundo = paso && siguienteNivel && siguienteNivel.mundo !== NIVELES[n].mundo && siguienteNivel.mundo > mundoAntes;
+  const proximo = NIVELES[n + 1];
+  const abreMundo = paso && proximo && proximo.mundo !== nivel.mundo && !siguienteAbiertoAntes;
   nuevo.classList.toggle('oculto', !abreMundo);
-  if (abreMundo) nuevo.textContent = `🔓 ¡Desbloqueaste el ${MUNDOS[siguienteNivel.mundo].nombre}!`;
+  if (abreMundo) nuevo.innerHTML = `${icono('abierto')} ¡Desbloqueaste el ${MUNDOS[proximo.mundo].nombreLargo}!`;
 
   const botones = document.getElementById('resultado-botones');
   botones.innerHTML = '';
-  const agregar = (texto, clase, accion) => {
-    const b = document.createElement('button'); b.className = 'boton ' + clase; b.textContent = texto; b.onclick = accion; botones.append(b);
+  const agregar = (html, clase, accion) => {
+    const b = document.createElement('button'); b.className = 'boton ' + clase; b.innerHTML = html; b.onclick = accion; botones.append(b);
   };
-  if (paso && n === NIVELES.length - 1) agregar('🎓 Ver mi diploma', 'amarillo', mostrarDiploma);
-  else if (paso) agregar('Siguiente nivel ➜', 'verde', () => abrirLeccion(n + 1));
-  agregar('🔁 ' + (paso ? 'Repetir' : 'Intentar de nuevo'), paso ? 'celeste chico' : 'naranja', () => abrirLeccion(n));
-  agregar('🗺️ Mapa', 'blanco chico', () => mostrarPantalla('mapa'));
+  if (paso && n === NIVELES.length - 1) agregar('🎓 Ver mi diploma', 'grande', mostrarDiploma);
+  else if (paso) agregar('Siguiente nivel ' + icono('play'), 'mundo grande', () => abrirLeccion(n + 1));
+  else agregar('Intentar de nuevo', 'mundo grande', () => abrirLeccion(n));
+  if (paso) agregar('Repetir', 'secundario', () => abrirLeccion(n));
+  agregar('Mapa', 'secundario', () => mostrarPantalla('mapa'));
   mostrarPantalla('resultado');
 
   if (paso) {
@@ -1073,7 +1351,6 @@ function mostrarDiploma() {
   document.getElementById('diploma-nombre').textContent = progreso.nombre || 'un genio de las matemáticas';
   document.getElementById('diploma-estrellas').textContent = `Con ${totalEstrellas()} de ${NIVELES.length * 3} estrellas ⭐`;
   document.getElementById('diploma-fecha').textContent = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
-  document.body.style.background = '';
   mostrarPantalla('final');
   lluvia(3);
   festejar(['¡Felicitaciones!', '¡Sos un campeón de las matemáticas!', '🏆']);
@@ -1081,17 +1358,12 @@ function mostrarDiploma() {
 
 
 /* ---------- 12. ARRANQUE ---------- */
-// Título con letras de colores que rebotan
-document.getElementById('titulo').innerHTML = [...'Matemágica'].map((letra, i) =>
-  `<span style="color:${COLORES[i % COLORES.length]};animation-delay:${i * 0.1}s">${letra}</span>`).join('');
-// Números y signos flotando en el fondo
-document.getElementById('decoracion').innerHTML = ['1', '+', '2', '×', '3', '−', '5', '=', '7', '+', '9', '×'].map((s, i) =>
-  `<span style="left:${(i * 37) % 95}%;top:${(i * 53) % 90}%;font-size:${2 + (i % 3)}rem;animation-delay:${-i}s">${s}</span>`).join('');
 for (const id of ['profe-inicio', 'profe-final']) document.getElementById(id).innerHTML = profeMishi(id === 'profe-final' ? 'contenta' : 'feliz');
 document.getElementById('nombre').value = progreso.nombre;
 document.getElementById('nombre').addEventListener('keydown', e => { if (e.key === 'Enter') irAlMapa(); });
 pintarBotonSonido();
 ajustarLienzo();
+actualizarInicio();
 </script>
 </body>
 </html>
